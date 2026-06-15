@@ -166,6 +166,21 @@ create table public.audit_events (
   created_at timestamptz not null default now()
 );
 
+create table public.care_circle_invites (
+  id uuid primary key default gen_random_uuid(),
+  token text not null unique default encode(gen_random_bytes(24), 'hex'),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  care_recipient_id uuid not null references public.care_recipients(id) on delete cascade,
+  invited_email text,
+  role app_role not null default 'family_member',
+  created_by uuid references auth.users(id),
+  accepted_by uuid references auth.users(id),
+  accepted_at timestamptz,
+  revoked_at timestamptz,
+  expires_at timestamptz not null default (now() + interval '14 days'),
+  created_at timestamptz not null default now()
+);
+
 create or replace function public.is_care_member(target_recipient uuid)
 returns boolean
 language sql
@@ -209,8 +224,20 @@ alter table public.contacts enable row level security;
 alter table public.documents enable row level security;
 alter table public.caregiver_videos enable row level security;
 alter table public.audit_events enable row level security;
+alter table public.care_circle_invites enable row level security;
+
+create policy "members read organizations" on public.organizations
+for select using (
+  exists (
+    select 1
+    from public.care_memberships m
+    where m.organization_id = organizations.id
+      and m.user_id = auth.uid()
+  )
+);
 
 create policy "profiles are self-readable" on public.profiles for select using (id = auth.uid());
+create policy "profiles are self-insertable" on public.profiles for insert with check (id = auth.uid());
 create policy "profiles are self-editable" on public.profiles for update using (id = auth.uid());
 
 create policy "members read care recipients" on public.care_recipients
@@ -280,9 +307,18 @@ for all using (
   ))
 );
 
+create policy "leads read care circle invites" on public.care_circle_invites
+for select using (public.has_care_role(care_recipient_id, array['family_lead','agency_coordinator']::app_role[]));
+create policy "leads create care circle invites" on public.care_circle_invites
+for insert with check (public.has_care_role(care_recipient_id, array['family_lead','agency_coordinator']::app_role[]));
+create policy "leads update care circle invites" on public.care_circle_invites
+for update using (public.has_care_role(care_recipient_id, array['family_lead','agency_coordinator']::app_role[]));
+
 create index on public.care_memberships(user_id);
 create index on public.care_memberships(care_recipient_id);
 create index on public.tasks(care_recipient_id, completed_at, due_at);
 create index on public.care_notes(care_recipient_id, created_at desc);
 create index on public.care_shifts(care_recipient_id, starts_at);
 create index on public.caregiver_videos(care_recipient_id);
+create index on public.care_circle_invites(token);
+create index on public.care_circle_invites(care_recipient_id);

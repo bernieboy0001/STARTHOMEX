@@ -3,9 +3,19 @@ import { redirect } from "next/navigation";
 import { ClipboardList, FileVideo, HeartPulse, ShieldCheck, UsersRound } from "lucide-react";
 import { VideoUploadForm } from "@/components/video-upload-form";
 import { createNote, createTask, createVideo } from "./actions";
+import { createInviteLink } from "./invite-actions";
+import { inviteUrl } from "@/lib/invites";
 import { createClient } from "@/lib/supabase/server";
 import { demoNotes, demoRecipient, demoTasks, demoVideos } from "@/lib/demo-data";
 import type { CareNote, CareRecipient, CareVideo, Task } from "@/lib/types";
+
+type Invite = {
+  token: string;
+  role: string;
+  invited_email: string | null;
+  accepted_at: string | null;
+  revoked_at: string | null;
+};
 
 async function loadDashboard() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -14,6 +24,8 @@ async function loadDashboard() {
       tasks: demoTasks,
       notes: demoNotes,
       videos: demoVideos,
+      invites: [] as Invite[],
+      userEmail: null as string | null,
       demo: true
     };
   }
@@ -32,10 +44,16 @@ async function loadDashboard() {
     redirect("/onboarding");
   }
 
-  const [{ data: tasks }, { data: notes }, { data: videos }] = await Promise.all([
+  const [{ data: tasks }, { data: notes }, { data: videos }, { data: invites }] = await Promise.all([
     supabase.from("tasks").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }),
     supabase.from("care_notes").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(8),
-    supabase.from("caregiver_videos").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false })
+    supabase.from("caregiver_videos").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }),
+    supabase
+      .from("care_circle_invites")
+      .select("token, role, invited_email, accepted_at, revoked_at, expires_at, created_at")
+      .eq("care_recipient_id", recipient.id)
+      .order("created_at", { ascending: false })
+      .limit(5)
   ]);
 
   const videosWithPlayback = await Promise.all(
@@ -51,6 +69,8 @@ async function loadDashboard() {
     tasks: (tasks || []) as Task[],
     notes: (notes || []) as CareNote[],
     videos: videosWithPlayback,
+    invites: (invites || []) as Invite[],
+    userEmail: userData.user.email || null,
     demo: false
   };
 }
@@ -70,10 +90,12 @@ function videoFrame(video: CareVideo) {
   return null;
 }
 
-export default async function DashboardPage() {
-  const { recipient, tasks, notes, videos, demo } = await loadDashboard();
+export default async function DashboardPage({ searchParams }: { searchParams?: Promise<{ error?: string; invite?: string }> }) {
+  const query = await searchParams;
+  const { recipient, tasks, notes, videos, invites, userEmail, demo } = await loadDashboard();
   const openTasks = tasks.filter(task => !task.completed_at);
   const careRecipientId = demo ? "00000000-0000-0000-0000-000000000000" : recipient.id;
+  const latestInviteUrl = query?.invite ? inviteUrl(query.invite) : null;
 
   return (
     <div className="shell">
@@ -83,7 +105,8 @@ export default async function DashboardPage() {
           <span><strong>HOMEX</strong><span>Care at home</span></span>
         </Link>
         <nav className="nav">
-          <a href="#command">Command</a>
+          <a href="#overview">Overview</a>
+          <a href="#invite">Invite family</a>
           <a href="#tasks">Tasks</a>
           <a href="#videos">Videos</a>
           <a href="#notes">Notes</a>
@@ -92,14 +115,22 @@ export default async function DashboardPage() {
       </aside>
 
       <main className="main">
-        <header className="page-head" id="command">
+        <header className="page-head" id="overview">
           <div>
             <p className="eyebrow">Recovery dashboard</p>
             <h2>{recipient.full_name}</h2>
             <p className="muted">{recipient.recovery_status}</p>
           </div>
-          <Link className="button" href="/sign-in">Invite care circle</Link>
+          <a className="button" href="#invite">Invite family</a>
         </header>
+
+        {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
+        {demo && (
+          <p className="notice">
+            <strong>Demo preview</strong>
+            <span>Connect Supabase in Vercel to enable sign in, saving notes, creating tasks, invite links, and video uploads.</span>
+          </p>
+        )}
 
         <section className="grid-4">
           <article className="metric"><ClipboardList size={20} /><span>Open tasks</span><strong>{openTasks.length}</strong></article>
@@ -119,7 +150,7 @@ export default async function DashboardPage() {
             <div className="rows">
               <div className="row"><strong>{openTasks[0]?.title || "No urgent open task"}</strong><span>{openTasks[0] ? `Owner: ${openTasks[0].owner_name || "Unassigned"}` : "Keep monitoring notes and red flags."}</span></div>
               <div className="row"><strong>Emergency summary</strong><span>{recipient.emergency_summary}</span></div>
-              {demo && <div className="row"><strong>Demo mode</strong><span>Connect Supabase and seed a care recipient to use real production data.</span></div>}
+              {userEmail && <div className="row"><strong>Signed in</strong><span>{userEmail}</span></div>}
             </div>
           </article>
 
@@ -127,10 +158,50 @@ export default async function DashboardPage() {
             <div className="panel-head"><h3>Add care note</h3></div>
             <form className="form" action={createNote}>
               <input type="hidden" name="careRecipientId" value={careRecipientId} />
-              <input name="authorName" placeholder="Author" required />
-              <textarea name="body" placeholder="What changed today?" required />
-              <button className="button" type="submit" disabled={demo}>Add note</button>
+              <input name="authorName" placeholder="Author" required disabled={demo} />
+              <textarea name="body" placeholder="What changed today?" required disabled={demo} />
+              <button className="button" type="submit" disabled={demo}>{demo ? "Connect Supabase to add notes" : "Add note"}</button>
             </form>
+          </article>
+        </section>
+
+        <section className="grid-2" style={{ marginTop: 16 }} id="invite">
+          <article className="panel">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">Circle invites</p>
+                <h3>Bring trusted family into this circle</h3>
+              </div>
+            </div>
+            <form className="form" action={createInviteLink}>
+              <input type="hidden" name="careRecipientId" value={careRecipientId} />
+              <input name="invitedEmail" type="email" placeholder="Optional: family@example.com" disabled={demo} />
+              <select name="role" defaultValue="family_member" disabled={demo}>
+                <option value="family_member">Family member</option>
+                <option value="home_aide">Home aide</option>
+                <option value="agency_coordinator">Agency coordinator</option>
+                <option value="clinician">Clinician</option>
+              </select>
+              <button className="button" type="submit" disabled={demo}>{demo ? "Connect Supabase to create invites" : "Generate invite link"}</button>
+            </form>
+            {latestInviteUrl && (
+              <div className="row copy-row">
+                <strong>Share this link</strong>
+                <span>{latestInviteUrl}</span>
+              </div>
+            )}
+          </article>
+          <article className="panel">
+            <div className="panel-head"><h3>Recent invite links</h3></div>
+            <div className="rows">
+              {invites.length === 0 && <div className="row"><strong>No invites yet</strong><span>Generate a link when you are ready to add trusted family.</span></div>}
+              {invites.map(invite => (
+                <div className="row" key={invite.token}>
+                  <strong>{invite.invited_email || "Open invite"} / {invite.role.replace("_", " ")}</strong>
+                  <span>{invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : inviteUrl(invite.token)}</span>
+                </div>
+              ))}
+            </div>
           </article>
         </section>
 
@@ -141,7 +212,7 @@ export default async function DashboardPage() {
               {tasks.map(task => (
                 <div className="row" key={task.id}>
                   <strong>{task.title}</strong>
-                  <span>{task.owner_name || "Unassigned"} · {formatDate(task.due_at)} · {task.priority}</span>
+                  <span>{task.owner_name || "Unassigned"} / {formatDate(task.due_at)} / {task.priority}</span>
                 </div>
               ))}
             </div>
@@ -150,15 +221,15 @@ export default async function DashboardPage() {
             <div className="panel-head"><h3>Create task</h3></div>
             <form className="form" action={createTask}>
               <input type="hidden" name="careRecipientId" value={careRecipientId} />
-              <input name="title" placeholder="Call insurance about home PT" required />
-              <input name="ownerName" placeholder="Owner name" required />
-              <input name="dueAt" type="datetime-local" />
-              <select name="priority" defaultValue="medium">
+              <input name="title" placeholder="Call insurance about home PT" required disabled={demo} />
+              <input name="ownerName" placeholder="Owner name" required disabled={demo} />
+              <input name="dueAt" type="datetime-local" disabled={demo} />
+              <select name="priority" defaultValue="medium" disabled={demo}>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
               </select>
-              <button className="button" type="submit" disabled={demo}>Create task</button>
+              <button className="button" type="submit" disabled={demo}>{demo ? "Connect Supabase to create tasks" : "Create task"}</button>
             </form>
           </article>
         </section>
@@ -184,11 +255,11 @@ export default async function DashboardPage() {
           </div>
           <form className="form" action={createVideo} style={{ marginTop: 16 }}>
             <input type="hidden" name="careRecipientId" value={careRecipientId} />
-            <input name="title" placeholder="Safe transfer walkthrough" required />
-            <input name="category" placeholder="Mobility" required />
-            <input name="embedUrl" placeholder="YouTube/Vimeo embed URL or leave blank for uploaded video" />
-            <textarea name="description" placeholder="When should the family or aide watch this?" />
-            <button className="button" type="submit" disabled={demo}>Add care video</button>
+            <input name="title" placeholder="Safe transfer walkthrough" required disabled={demo} />
+            <input name="category" placeholder="Mobility" required disabled={demo} />
+            <input name="embedUrl" placeholder="YouTube/Vimeo embed URL or leave blank for uploaded video" disabled={demo} />
+            <textarea name="description" placeholder="When should the family or aide watch this?" disabled={demo} />
+            <button className="button" type="submit" disabled={demo}>{demo ? "Connect Supabase to add videos" : "Add care video"}</button>
           </form>
           <div style={{ marginTop: 16 }}>
             <p className="eyebrow">Upload caretaker video</p>
@@ -198,11 +269,11 @@ export default async function DashboardPage() {
 
         <section className="grid-2" style={{ marginTop: 16 }} id="security">
           <article className="panel">
-            <div className="panel-head"><ShieldCheck size={22} /><h3>Production security model</h3></div>
+            <div className="panel-head"><ShieldCheck size={22} /><h3>Security model</h3></div>
             <div className="rows">
               <div className="row"><strong>Private care circles</strong><span>Every care record is protected by Supabase RLS.</span></div>
               <div className="row"><strong>Role-based access</strong><span>Family leads, aides, agencies, and clinicians get scoped permissions.</span></div>
-              <div className="row"><strong>Audit-ready</strong><span>The schema includes an audit event table for sensitive workflows.</span></div>
+              <div className="row"><strong>Invite-only growth</strong><span>Family members join through links generated by the circle lead.</span></div>
             </div>
           </article>
           <article className="panel">
