@@ -44,7 +44,7 @@ async function loadDashboard() {
     redirect("/onboarding");
   }
 
-  const [{ data: tasks }, { data: notes }, { data: videos }, { data: invites }] = await Promise.all([
+  const [{ data: tasks }, { data: notes }, { data: videos }, invitesResult] = await Promise.all([
     supabase.from("tasks").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }),
     supabase.from("care_notes").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(8),
     supabase.from("caregiver_videos").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }),
@@ -55,6 +55,8 @@ async function loadDashboard() {
       .order("created_at", { ascending: false })
       .limit(5)
   ]);
+  const invites = invitesResult.error ? [] : invitesResult.data;
+  const inviteError = invitesResult.error?.message || null;
 
   const videosWithPlayback = await Promise.all(
     ((videos || []) as CareVideo[]).map(async video => {
@@ -70,6 +72,7 @@ async function loadDashboard() {
     notes: (notes || []) as CareNote[],
     videos: videosWithPlayback,
     invites: (invites || []) as Invite[],
+    inviteError,
     userEmail: userData.user.email || null,
     demo: false
   };
@@ -92,7 +95,7 @@ function videoFrame(video: CareVideo) {
 
 export default async function DashboardPage({ searchParams }: { searchParams?: Promise<{ error?: string; invite?: string }> }) {
   const query = await searchParams;
-  const { recipient, tasks, notes, videos, invites, userEmail, demo } = await loadDashboard();
+  const { recipient, tasks, notes, videos, invites, inviteError, userEmail, demo } = await loadDashboard();
   const openTasks = tasks.filter(task => !task.completed_at);
   const careRecipientId = demo ? "00000000-0000-0000-0000-000000000000" : recipient.id;
   const latestInviteUrl = query?.invite ? inviteUrl(query.invite) : null;
@@ -125,6 +128,12 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
         </header>
 
         {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
+        {inviteError && (
+          <p className="notice">
+            <strong>Invite setup needed</strong>
+            <span>Run supabase/upgrade-auth-admin-invites.sql in Supabase to enable family invite links. The rest of the dashboard can still load.</span>
+          </p>
+        )}
         {demo && (
           <p className="notice">
             <strong>Demo preview</strong>
