@@ -16,6 +16,8 @@ export type Task = {
   due_at: string | null;
   priority: "low" | "medium" | "high";
   completed_at: string | null;
+  completed_by: string | null;
+  completed_by_name: string | null;
 };
 
 export type CareNote = {

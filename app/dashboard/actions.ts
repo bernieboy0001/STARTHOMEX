@@ -12,6 +12,12 @@ const taskSchema = z.object({
   dueAt: z.string().optional()
 });
 
+const toggleTaskSchema = z.object({
+  taskId: z.string().uuid(),
+  careRecipientId: z.string().uuid(),
+  completed: z.enum(["on", "off"]).default("off")
+});
+
 const noteSchema = z.object({
   careRecipientId: z.string().uuid(),
   authorName: z.string().min(1),
@@ -44,6 +50,37 @@ export async function createTask(formData: FormData) {
     priority: parsed.priority,
     due_at: parsed.dueAt || null
   });
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard");
+}
+
+export async function toggleTaskCompletion(formData: FormData) {
+  const parsed = toggleTaskSchema.parse({
+    taskId: formData.get("taskId"),
+    careRecipientId: formData.get("careRecipientId"),
+    completed: formData.get("completed") ? "on" : "off"
+  });
+
+  const supabase = await createClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) throw new Error("You must be signed in to update tasks.");
+
+  const checked = parsed.completed === "on";
+  const name =
+    (userData.user.user_metadata?.full_name as string | undefined) ||
+    userData.user.email ||
+    "Care circle member";
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      completed_at: checked ? new Date().toISOString() : null,
+      completed_by: checked ? userData.user.id : null,
+      completed_by_name: checked ? name : null
+    })
+    .eq("id", parsed.taskId)
+    .eq("care_recipient_id", parsed.careRecipientId);
 
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard");

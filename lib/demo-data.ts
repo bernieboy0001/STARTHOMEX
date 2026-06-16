@@ -3,16 +3,16 @@ import type { CareNote, CareRecipient, CareVideo, Task } from "./types";
 export const demoRecipient: CareRecipient = {
   id: "demo-recipient",
   full_name: "Evelyn Carter",
-  recovery_status: "Day 6 after hip surgery discharge",
+  recovery_status: "Needs daily medication, meal, appointment, and mobility support",
   fall_risk: "Moderate",
-  primary_condition: "Hip fracture repair",
-  emergency_summary: "Use walker for every transfer. Escalate for chest pain, new confusion, fever, fall, or severe wound pain."
+  primary_condition: "General elder care",
+  emergency_summary: "Escalate for chest pain, new confusion, fever, fall, missed medication, or sudden weakness."
 };
 
 export const demoTasks: Task[] = [
-  { id: "t1", title: "Call insurance about home PT authorization", owner_name: "Maya", due_at: new Date().toISOString(), priority: "high", completed_at: null },
-  { id: "t2", title: "Pick up Lisinopril refill", owner_name: "Andre", due_at: new Date(Date.now() + 86400000).toISOString(), priority: "medium", completed_at: null },
-  { id: "t3", title: "Upload discharge instructions", owner_name: "Maya", due_at: null, priority: "low", completed_at: new Date().toISOString() }
+  { id: "t1", title: "Confirm tomorrow's clinic transport", owner_name: "Maya", due_at: new Date().toISOString(), priority: "high", completed_at: null, completed_by: null, completed_by_name: null },
+  { id: "t2", title: "Pick up Lisinopril refill", owner_name: "Andre", due_at: new Date(Date.now() + 86400000).toISOString(), priority: "medium", completed_at: null, completed_by: null, completed_by_name: null },
+  { id: "t3", title: "Update emergency contact list", owner_name: "Maya", due_at: null, priority: "low", completed_at: new Date().toISOString(), completed_by: "demo-user", completed_by_name: "Maya" }
 ];
 
 export const demoNotes: CareNote[] = [

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ClipboardList, FileVideo, HeartPulse, ShieldCheck, UsersRound } from "lucide-react";
 import { VideoUploadForm } from "@/components/video-upload-form";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TaskCompletionRow } from "@/components/task-completion-row";
 import { createNote, createTask, createVideo } from "./actions";
 import { createInviteLink } from "./invite-actions";
 import { inviteUrl } from "@/lib/invites";
@@ -221,10 +222,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
             <div className="panel-head"><h3>Care tasks</h3></div>
             <div className="rows">
               {tasks.map(task => (
-                <div className="row" key={task.id}>
-                  <strong>{task.title}</strong>
-                  <span>{task.owner_name || "Unassigned"} / {formatDate(task.due_at)} / {task.priority}</span>
-                </div>
+                <TaskCompletionRow task={task} careRecipientId={careRecipientId} disabled={demo} key={task.id} />
               ))}
             </div>
           </article>

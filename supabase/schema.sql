@@ -67,6 +67,8 @@ create table public.tasks (
   due_at timestamptz,
   priority task_priority not null default 'medium',
   completed_at timestamptz,
+  completed_by uuid references auth.users(id),
+  completed_by_name text,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now()
 );

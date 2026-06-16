@@ -328,6 +328,36 @@ h2 {
 .row strong, .row span { display: block; }
 .row span { margin-top: 6px; line-height: 1.42; }
 
+.task-row {
+  padding: 0;
+}
+
+.task-row.is-pending {
+  opacity: 0.72;
+}
+
+.task-row.is-complete strong {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.task-check {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
+  padding: 15px;
+}
+
+.task-check input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  margin: 1px 0 0;
+  accent-color: var(--green);
+}
+
 .notice {
   display: grid;
   gap: 6px;
@@ -489,6 +519,24 @@ textarea { min-height: 110px; resize: vertical; }
 
 @media (max-width: 640px) {
   .main { padding: 12px; }
+  body { overflow-x: hidden; }
+  .rail {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .brand > span:last-child {
+    min-width: 0;
+  }
+  .brand strong,
+  .brand span span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .hero { min-height: auto; }
   .hero-content {
     min-height: 100svh;
@@ -538,6 +586,9 @@ textarea { min-height: 110px; resize: vertical; }
   .panel, .metric, .card {
     padding: 15px;
   }
+  .panel {
+    overflow: hidden;
+  }
   .grid-4 {
     gap: 10px;
   }
@@ -557,6 +608,15 @@ textarea { min-height: 110px; resize: vertical; }
   .copy-row span,
   .row span {
     overflow-wrap: anywhere;
+  }
+  .task-check {
+    grid-template-columns: 28px minmax(0, 1fr);
+    padding: 14px;
+  }
+  .task-check input[type="checkbox"] {
+    width: 26px;
+    height: 26px;
+    min-height: 26px;
   }
   input, select, textarea {
     font-size: 16px;
