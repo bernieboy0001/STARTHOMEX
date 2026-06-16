@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ClipboardList, FileVideo, HeartPulse, ShieldCheck, UsersRound } from "lucide-react";
 import { VideoUploadForm } from "@/components/video-upload-form";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { createNote, createTask, createVideo } from "./actions";
 import { createInviteLink } from "./invite-actions";
 import { inviteUrl } from "@/lib/invites";
@@ -107,6 +108,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
           <img className="brand-logo" src="/homex-logo.png" alt="HOMEX" />
           <span><strong>HOMEX</strong><span>Care at home</span></span>
         </Link>
+        <ThemeToggle />
         <nav className="nav">
           <a href="#overview">Overview</a>
           <a href="#invite">Invite family</a>

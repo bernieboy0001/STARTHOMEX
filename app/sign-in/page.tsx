@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { sendMagicLink, signInWithPassword, signUpWithPassword } from "./actions";
 
 export default async function SignInPage({ searchParams }: { searchParams?: Promise<{ error?: string; sent?: string }> }) {
@@ -7,6 +8,9 @@ export default async function SignInPage({ searchParams }: { searchParams?: Prom
 
   return (
     <main className="main">
+      <div className="top-tools">
+        <ThemeToggle />
+      </div>
       <section className="auth-grid">
         <article className="panel">
           <p className="eyebrow">Create account</p>

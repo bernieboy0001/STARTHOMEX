@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/auth";
 import { deleteAuthUser, revokeInvite, revokeMembership } from "./actions";
@@ -50,6 +51,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
           <img className="brand-logo" src="/homex-logo.png" alt="HOMEX" />
           <span><strong>HOMEX</strong><span>Superadmin</span></span>
         </Link>
+        <ThemeToggle />
         <nav className="nav">
           <a href="#users">Users</a>
           <a href="#memberships">Access</a>

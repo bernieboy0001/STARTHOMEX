@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
   return (
     <main className="hero">
+      <div className="floating-tools">
+        <ThemeToggle />
+      </div>
       <section className="hero-content">
         <img className="hero-logo" src="/homex-logo.png" alt="HOMEX" />
         <p className="eyebrow">Home recovery coordination</p>

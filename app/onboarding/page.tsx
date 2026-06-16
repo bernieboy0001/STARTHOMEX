@@ -1,10 +1,14 @@
 import { createCareCircle } from "./actions";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function OnboardingPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const query = await searchParams;
 
   return (
     <main className="main">
+      <div className="top-tools">
+        <ThemeToggle />
+      </div>
       <section className="panel" style={{ maxWidth: 820, margin: "4vh auto" }}>
         <p className="eyebrow">Create care circle</p>
         <h2>Set up the first care plan.</h2>
