@@ -47,7 +47,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
     <div className="shell">
       <aside className="rail">
         <Link href="/" className="brand">
-          <span className="mark">HX</span>
+          <img className="brand-logo" src="/homex-logo.png" alt="HOMEX" />
           <span><strong>HOMEX</strong><span>Superadmin</span></span>
         </Link>
         <nav className="nav">

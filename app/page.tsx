@@ -4,6 +4,7 @@ export default function HomePage() {
   return (
     <main className="hero">
       <section className="hero-content">
+        <img className="hero-logo" src="/homex-logo.png" alt="HOMEX" />
         <p className="eyebrow">Home recovery coordination</p>
         <h1>Bring your loved one home with everyone on the same page.</h1>
         <p>

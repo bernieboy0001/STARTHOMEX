@@ -104,7 +104,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
     <div className="shell">
       <aside className="rail">
         <Link href="/" className="brand">
-          <span className="mark">HX</span>
+          <img className="brand-logo" src="/homex-logo.png" alt="HOMEX" />
           <span><strong>HOMEX</strong><span>Care at home</span></span>
         </Link>
         <nav className="nav">
