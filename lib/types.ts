@@ -81,6 +81,8 @@ export type CareMembership = {
   user_id: string;
   role: Role;
   created_at: string;
+  email?: string | null;
+  full_name?: string | null;
 };
 
 export type AuditEvent = {

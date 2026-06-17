@@ -12,6 +12,16 @@ const inviteSchema = z.object({
   role: z.enum(["family_member", "home_aide", "agency_coordinator", "clinician"]).default("family_member")
 });
 
+const revokeInviteSchema = z.object({
+  token: z.string().min(12),
+  careRecipientId: z.string().uuid()
+});
+
+const revokeMemberSchema = z.object({
+  membershipId: z.string().uuid(),
+  careRecipientId: z.string().uuid()
+});
+
 async function requireLead(careRecipientId: string, userId: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -56,4 +66,59 @@ export async function createInviteLink(formData: FormData) {
 
   revalidatePath("/dashboard");
   redirect(`/dashboard?invite=${data.token}`);
+}
+
+export async function revokeInviteLink(formData: FormData) {
+  const parsed = revokeInviteSchema.parse({
+    token: formData.get("token"),
+    careRecipientId: formData.get("careRecipientId")
+  });
+  const user = await requireUser();
+  await requireLead(parsed.careRecipientId, user.id);
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("care_circle_invites")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("token", parsed.token)
+    .eq("care_recipient_id", parsed.careRecipientId);
+
+  if (error) redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/dashboard");
+  redirect("/dashboard#invite");
+}
+
+export async function revokeMemberAccess(formData: FormData) {
+  const parsed = revokeMemberSchema.parse({
+    membershipId: formData.get("membershipId"),
+    careRecipientId: formData.get("careRecipientId")
+  });
+  const user = await requireUser();
+  await requireLead(parsed.careRecipientId, user.id);
+  const admin = createAdminClient();
+
+  const { data: membership, error: membershipError } = await admin
+    .from("care_memberships")
+    .select("user_id, role")
+    .eq("id", parsed.membershipId)
+    .eq("care_recipient_id", parsed.careRecipientId)
+    .single();
+
+  if (membershipError || !membership) {
+    redirect("/dashboard?error=Membership%20not%20found");
+  }
+
+  if (membership.user_id === user.id) {
+    redirect("/dashboard?error=You%20cannot%20remove%20your%20own%20access");
+  }
+
+  const { error } = await admin
+    .from("care_memberships")
+    .delete()
+    .eq("id", parsed.membershipId)
+    .eq("care_recipient_id", parsed.careRecipientId);
+
+  if (error) redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/dashboard");
+  redirect("/dashboard#invite");
 }

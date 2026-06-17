@@ -16,7 +16,28 @@
     <main>
       <img src="/homex-logo.png" alt="HOMEX" />
       <h1>You are offline</h1>
-      <p>HOMEX needs internet for private care data. Reconnect to view tasks, medications, appointments, documents, and care notes.</p>
+      <p>HOMEX needs internet for private care data. Reconnect to view tasks, documents, and care notes.</p>
+      <section id="emergency"></section>
     </main>
+    <script>
+      const target = document.getElementById("emergency");
+      try {
+        const raw = localStorage.getItem("homex-offline-emergency");
+        if (raw && target) {
+          const data = JSON.parse(raw);
+          const meds = (data.medications || []).map(item => `<li>${item.name} ${item.dosage || ""} - ${item.schedule}</li>`).join("");
+          const contacts = (data.contacts || []).map(item => `<li>${item.name} (${item.role}) ${item.phone || item.email || ""}</li>`).join("");
+          target.innerHTML = `
+            <h2>Offline emergency snapshot</h2>
+            <p><strong>${data.recipient.full_name}</strong></p>
+            <p>${data.recipient.emergency_summary || "No emergency summary saved."}</p>
+            <p>Fall risk: ${data.recipient.fall_risk || "Unknown"}</p>
+            <h3>Medications</h3><ul>${meds || "<li>No saved medications</li>"}</ul>
+            <h3>Contacts</h3><ul>${contacts || "<li>No saved contacts</li>"}</ul>
+            <p>Saved: ${new Date(data.savedAt).toLocaleString()}</p>
+          `;
+        }
+      } catch {}
+    </script>
   </body>
 </html>

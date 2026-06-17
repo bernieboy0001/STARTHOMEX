@@ -4,8 +4,10 @@ import { CalendarDays, ClipboardList, FileText, FileVideo, HeartPulse, Pill, Shi
 import { VideoUploadForm } from "@/components/video-upload-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TaskCompletionRow } from "@/components/task-completion-row";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
+import { OfflineEmergencyCache } from "@/components/offline-emergency-cache";
 import { createContact, createDocument, createMedication, createNote, createTask, createVideo, createVisit } from "./actions";
-import { createInviteLink } from "./invite-actions";
+import { createInviteLink, revokeInviteLink, revokeMemberAccess } from "./invite-actions";
 import { inviteUrl } from "@/lib/invites";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -81,10 +83,23 @@ async function loadDashboard() {
   ]);
 
   const admin = createAdminClient();
-  const [{ data: memberships }, { data: activity }] = await Promise.all([
+  const [{ data: memberships }, { data: activity }, authUsersResult] = await Promise.all([
     admin.from("care_memberships").select("id, user_id, role, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }),
-    admin.from("audit_events").select("id, actor_name, action, entity, summary, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(10)
+    admin.from("audit_events").select("id, actor_name, action, entity, summary, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(10),
+    admin.auth.admin.listUsers({ page: 1, perPage: 200 })
   ]);
+  const usersById = new Map((authUsersResult.data?.users || []).map(user => [
+    user.id,
+    {
+      email: user.email || null,
+      full_name: (user.user_metadata?.full_name as string | undefined) || null
+    }
+  ]));
+  const membershipsWithUsers = (memberships || []).map(member => ({
+    ...member,
+    email: usersById.get(member.user_id)?.email || null,
+    full_name: usersById.get(member.user_id)?.full_name || null
+  }));
 
   const videosWithPlayback = await Promise.all(
     ((videos || []) as CareVideo[]).map(async video => {
@@ -108,7 +123,7 @@ async function loadDashboard() {
     visits: (visitsResult.error ? [] : visitsResult.data || []) as Visit[],
     contacts: (contactsResult.error ? [] : contactsResult.data || []) as Contact[],
     documents: (documentsResult.error ? [] : documentsResult.data || []) as CareDocument[],
-    memberships: (memberships || []) as CareMembership[],
+    memberships: membershipsWithUsers as CareMembership[],
     activity: (activity || []) as AuditEvent[],
     inviteError: invitesResult.error?.message || null,
     productError,
@@ -138,6 +153,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
 
   return (
     <div className="shell">
+      <OfflineEmergencyCache recipient={recipient} contacts={contacts} medications={medications} visits={visits} />
       <aside className="rail">
         <Link href="/" className="brand">
           <img className="brand-logo" src="/homex-logo.png" alt="HOMEX" />
@@ -163,7 +179,10 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
             <h2>{recipient.full_name}</h2>
             <p className="muted">{recipient.recovery_status}</p>
           </div>
-          <a className="button" href="#invite">Invite family</a>
+          <div className="actions compact-actions">
+            <a className="button" href="#invite">Invite family</a>
+            <Link className="ghost" href="/sign-out">Sign out</Link>
+          </div>
         </header>
 
         {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
@@ -193,6 +212,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
               <div className="row"><strong>Care focus</strong><span>{recipient.primary_condition || "General home care"}</span></div>
               <div className="row"><strong>Fall risk</strong><span>{recipient.fall_risk || "Unknown"}</span></div>
               <div className="row"><strong>Important contacts</strong><span>{contacts.slice(0, 2).map(contact => `${contact.name} (${contact.role})`).join(" / ") || "Add contacts below."}</span></div>
+              <div className="row"><strong>Offline snapshot</strong><span>This emergency card is saved on this device for the offline page after you open the dashboard.</span></div>
             </div>
           </article>
         </section>
@@ -241,8 +261,28 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
             {latestInviteUrl && <div className="row copy-row"><strong>Share this link</strong><span>{latestInviteUrl}</span></div>}
           </article>
           <article className="panel"><div className="panel-head"><UsersRound size={22} /><h3>Members and invites</h3></div><div className="rows">
-            {memberships.map(member => <div className="row" key={member.id}><strong>{member.role.replace("_", " ")}</strong><span>{member.user_id} / Joined {formatDate(member.created_at)}</span></div>)}
-            {invites.map(invite => <div className="row" key={invite.token}><strong>{invite.invited_email || "Open invite"} / {invite.role.replace("_", " ")}</strong><span>{invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : inviteUrl(invite.token)}</span></div>)}
+            {memberships.map(member => (
+              <div className="row split-row" key={member.id}>
+                <span><strong>{member.full_name || member.email || member.user_id}</strong><span>{member.role.replace("_", " ")} / Joined {formatDate(member.created_at)}</span></span>
+                <form action={revokeMemberAccess}>
+                  <input type="hidden" name="membershipId" value={member.id} />
+                  <input type="hidden" name="careRecipientId" value={careRecipientId} />
+                  <button className="ghost danger" type="submit" disabled={demo}>Remove</button>
+                </form>
+              </div>
+            ))}
+            {invites.map(invite => (
+              <div className="row split-row" key={invite.token}>
+                <span><strong>{invite.invited_email || "Open invite"} / {invite.role.replace("_", " ")}</strong><span>{invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : inviteUrl(invite.token)}</span></span>
+                {!invite.revoked_at && !invite.accepted_at && (
+                  <form action={revokeInviteLink}>
+                    <input type="hidden" name="token" value={invite.token} />
+                    <input type="hidden" name="careRecipientId" value={careRecipientId} />
+                    <button className="ghost danger" type="submit" disabled={demo}>Revoke</button>
+                  </form>
+                )}
+              </div>
+            ))}
           </div></article>
         </section>
 
@@ -273,7 +313,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
 
         <section className="panel" style={{ marginTop: 16 }} id="security">
           <div className="panel-head"><ShieldCheck size={22} /><h3>Security model</h3></div>
-          <div className="rows"><div className="row"><strong>Private care circles</strong><span>Every care record is protected by Supabase RLS.</span></div><div className="row"><strong>Role-based access</strong><span>Family leads, aides, agencies, and clinicians get scoped permissions.</span></div><div className="row"><strong>Installable app path</strong><span>PWA support makes HOMEX installable now; push notifications, offline data sync, and native store wrappers come next.</span></div></div>
+          <div className="rows"><div className="row"><strong>Private care circles</strong><span>Every care record is protected by Supabase RLS.</span></div><div className="row"><strong>Role-based access</strong><span>Family leads, aides, agencies, and clinicians get scoped permissions.</span></div><PwaInstallPrompt /><div className="row"><strong>Next app features</strong><span>Push reminders, camera document scanning, voice notes, AI summaries, and native store wrappers are planned follow-on builds.</span></div></div>
         </section>
       </main>
     </div>
