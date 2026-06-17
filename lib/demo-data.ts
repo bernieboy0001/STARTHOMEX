@@ -1,4 +1,4 @@
-import type { CareNote, CareRecipient, CareVideo, Task } from "./types";
+import type { AuditEvent, CareDocument, CareMembership, CareNote, CareRecipient, CareVideo, Contact, Medication, Task, Visit } from "./types";
 
 export const demoRecipient: CareRecipient = {
   id: "demo-recipient",
@@ -37,4 +37,33 @@ export const demoVideos: CareVideo[] = [
     embed_url: null,
     storage_path: null
   }
+];
+
+export const demoMedications: Medication[] = [
+  { id: "m1", name: "Lisinopril", dosage: "10mg", schedule: "Every morning", instructions: "Take after breakfast.", prescribed_by: "Dr. Cole", refill_due_at: new Date(Date.now() + 604800000).toISOString(), active: true },
+  { id: "m2", name: "Vitamin D", dosage: "1000 IU", schedule: "Monday, Wednesday, Friday", instructions: "Take with food.", prescribed_by: null, refill_due_at: null, active: true }
+];
+
+export const demoVisits: Visit[] = [
+  { id: "vst1", title: "Primary care follow-up", starts_at: new Date(Date.now() + 172800000).toISOString(), location: "City Clinic", provider_name: "Dr. Cole", preparation_notes: "Bring medication list and recent BP readings." }
+];
+
+export const demoContacts: Contact[] = [
+  { id: "c1", name: "Maya Carter", role: "Family lead", phone: "+1 555 0101", email: "maya@example.com", notes: "First call for care decisions." },
+  { id: "c2", name: "City Clinic", role: "Primary care", phone: "+1 555 0120", email: null, notes: "Weekday appointments." }
+];
+
+export const demoDocuments: CareDocument[] = [
+  { id: "d1", title: "Medication list", category: "Medication", external_url: null, notes: "Updated this week.", created_at: new Date().toISOString() },
+  { id: "d2", title: "Emergency care preferences", category: "Emergency", external_url: null, notes: "Keep visible for caregivers.", created_at: new Date().toISOString() }
+];
+
+export const demoMemberships: CareMembership[] = [
+  { id: "cm1", user_id: "demo-user", role: "family_lead", created_at: new Date().toISOString() },
+  { id: "cm2", user_id: "demo-aide", role: "home_aide", created_at: new Date().toISOString() }
+];
+
+export const demoAuditEvents: AuditEvent[] = [
+  { id: "a1", actor_name: "Maya", action: "completed", entity: "task", summary: "Checked off Update emergency contact list.", created_at: new Date().toISOString() },
+  { id: "a2", actor_name: "Andre", action: "created", entity: "note", summary: "Added a family note.", created_at: new Date(Date.now() - 3600000).toISOString() }
 ];

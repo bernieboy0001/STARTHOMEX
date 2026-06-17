@@ -37,3 +37,57 @@ export type CareVideo = {
   storage_path: string | null;
   playback_url?: string | null;
 };
+
+export type Medication = {
+  id: string;
+  name: string;
+  dosage: string | null;
+  schedule: string;
+  instructions: string | null;
+  prescribed_by: string | null;
+  refill_due_at: string | null;
+  active: boolean;
+};
+
+export type Visit = {
+  id: string;
+  title: string;
+  starts_at: string | null;
+  location: string | null;
+  provider_name: string | null;
+  preparation_notes: string | null;
+};
+
+export type Contact = {
+  id: string;
+  name: string;
+  role: string;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+};
+
+export type CareDocument = {
+  id: string;
+  title: string;
+  category: string;
+  external_url: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type CareMembership = {
+  id: string;
+  user_id: string;
+  role: Role;
+  created_at: string;
+};
+
+export type AuditEvent = {
+  id: string;
+  actor_name: string | null;
+  action: string;
+  entity: string;
+  summary: string | null;
+  created_at: string;
+};

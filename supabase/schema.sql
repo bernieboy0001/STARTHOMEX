@@ -162,9 +162,11 @@ create table public.audit_events (
   organization_id uuid references public.organizations(id) on delete cascade,
   care_recipient_id uuid references public.care_recipients(id) on delete cascade,
   actor_id uuid references auth.users(id),
+  actor_name text,
   action text not null,
   entity text not null,
   entity_id uuid,
+  summary text,
   created_at timestamptz not null default now()
 );
 
@@ -316,6 +318,9 @@ for insert with check (public.has_care_role(care_recipient_id, array['family_lea
 create policy "leads update care circle invites" on public.care_circle_invites
 for update using (public.has_care_role(care_recipient_id, array['family_lead','agency_coordinator']::app_role[]));
 
+create policy "members read audit events" on public.audit_events
+for select using (public.is_care_member(care_recipient_id));
+
 create index on public.care_memberships(user_id);
 create index on public.care_memberships(care_recipient_id);
 create index on public.tasks(care_recipient_id, completed_at, due_at);
@@ -324,3 +329,8 @@ create index on public.care_shifts(care_recipient_id, starts_at);
 create index on public.caregiver_videos(care_recipient_id);
 create index on public.care_circle_invites(token);
 create index on public.care_circle_invites(care_recipient_id);
+create index on public.audit_events(care_recipient_id, created_at desc);
+create index on public.medications(care_recipient_id, active);
+create index on public.visits(care_recipient_id, starts_at);
+create index on public.documents(care_recipient_id, created_at desc);
+create index on public.contacts(care_recipient_id, role);
