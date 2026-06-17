@@ -93,3 +93,12 @@ export type AuditEvent = {
   summary: string | null;
   created_at: string;
 };
+
+export type Reminder = {
+  id: string;
+  title: string;
+  remind_at: string;
+  channel: string;
+  completed_at: string | null;
+  created_by: string | null;
+};

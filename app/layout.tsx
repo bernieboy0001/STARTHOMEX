@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
@@ -20,6 +20,13 @@ export const metadata: Metadata = {
     shortcut: "/favicon.png",
     apple: "/favicon.png"
   }
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0d6b57"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

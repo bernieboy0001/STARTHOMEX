@@ -16,8 +16,9 @@
     <main>
       <img src="/homex-logo.png" alt="HOMEX" />
       <h1>You are offline</h1>
-      <p>HOMEX needs internet for private care data. Reconnect to view tasks, documents, and care notes.</p>
+      <p>HOMEX needs internet to save changes. The latest saved snapshot on this phone is shown below when available.</p>
       <section id="emergency"></section>
+      <section id="snapshot"></section>
     </main>
     <script>
       const target = document.getElementById("emergency");
@@ -35,6 +36,24 @@
             <h3>Medications</h3><ul>${meds || "<li>No saved medications</li>"}</ul>
             <h3>Contacts</h3><ul>${contacts || "<li>No saved contacts</li>"}</ul>
             <p>Saved: ${new Date(data.savedAt).toLocaleString()}</p>
+          `;
+        }
+      } catch {}
+      const snapshotTarget = document.getElementById("snapshot");
+      try {
+        const raw = localStorage.getItem("homex-offline-dashboard");
+        if (raw && snapshotTarget) {
+          const data = JSON.parse(raw);
+          const tasks = (data.tasks || []).filter(item => !item.completed_at).slice(0, 6).map(item => `<li>${item.title} ${item.owner_name ? "- " + item.owner_name : ""}</li>`).join("");
+          const visits = (data.visits || []).slice(0, 4).map(item => `<li>${item.title} ${item.starts_at ? "- " + new Date(item.starts_at).toLocaleString() : ""}</li>`).join("");
+          const reminders = (data.reminders || []).slice(0, 4).map(item => `<li>${item.title} - ${new Date(item.remind_at).toLocaleString()}</li>`).join("");
+          const notes = (data.notes || []).slice(0, 4).map(item => `<li>${item.author_name}: ${item.body}</li>`).join("");
+          snapshotTarget.innerHTML = `
+            <h2>Latest circle snapshot</h2>
+            <h3>Open tasks</h3><ul>${tasks || "<li>No open tasks saved</li>"}</ul>
+            <h3>Visits</h3><ul>${visits || "<li>No visits saved</li>"}</ul>
+            <h3>Reminders</h3><ul>${reminders || "<li>No reminders saved</li>"}</ul>
+            <h3>Recent notes</h3><ul>${notes || "<li>No notes saved</li>"}</ul>
           `;
         }
       } catch {}

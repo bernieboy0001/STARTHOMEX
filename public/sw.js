@@ -31,3 +31,25 @@ self.addEventListener("fetch", event => {
     caches.match(request).then(cached => cached || fetch(request).catch(() => cached))
   );
 });
+
+self.addEventListener("push", event => {
+  let payload = { title: "HOMEX reminder", body: "A care-circle reminder is due.", url: "/dashboard/reminders" };
+  try {
+    payload = { ...payload, ...event.data.json() };
+  } catch {}
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/homex-logo.png",
+      badge: "/favicon.png",
+      data: { url: payload.url || "/dashboard/reminders" }
+    })
+  );
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/dashboard/reminders";
+  event.waitUntil(clients.openWindow(url));
+});

@@ -70,6 +70,13 @@ const documentSchema = z.object({
   notes: z.string().optional()
 });
 
+const reminderSchema = z.object({
+  careRecipientId: z.string().uuid(),
+  title: z.string().min(2),
+  remindAt: z.string().min(1),
+  channel: z.enum(["app", "email", "sms"]).default("app")
+});
+
 async function currentUser() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
@@ -329,4 +336,35 @@ export async function createDocument(formData: FormData) {
   if (error) throw new Error(error.message);
   await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "document", entityId: data?.id, summary: `Added document: ${parsed.title}.` });
   revalidatePath("/dashboard");
+}
+
+export async function createReminder(formData: FormData) {
+  const parsed = reminderSchema.parse({
+    careRecipientId: formData.get("careRecipientId"),
+    title: formData.get("title"),
+    remindAt: formData.get("remindAt"),
+    channel: formData.get("channel") || "app"
+  });
+
+  const { supabase, user, actorName } = await currentUser();
+  const { data, error } = await supabase.from("reminders").insert({
+    care_recipient_id: parsed.careRecipientId,
+    title: parsed.title,
+    remind_at: parsed.remindAt,
+    channel: parsed.channel,
+    created_by: user.id
+  }).select("id").single();
+
+  if (error) throw new Error(error.message);
+  await recordActivity({
+    careRecipientId: parsed.careRecipientId,
+    actorId: user.id,
+    actorName,
+    action: "created",
+    entity: "reminder",
+    entityId: data?.id,
+    summary: `Added reminder: ${parsed.title}.`
+  });
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/reminders");
 }
