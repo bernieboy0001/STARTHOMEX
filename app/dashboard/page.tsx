@@ -21,15 +21,15 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
           <p className="muted">{recipient.recovery_status}</p>
         </div>
         <div className="actions compact-actions">
-          <Link className="button" href="/dashboard/family">Invite family</Link>
-          <Link className="ghost" href="/sign-out">Sign out</Link>
+          <Link className="button" href={demo ? "/sign-in" : "/dashboard/family"}>{demo ? "Sign in to save" : "Invite family"}</Link>
+          {userEmail ? <Link className="ghost" href="/sign-out">Sign out</Link> : <Link className="ghost" href="/sign-in">Sign in</Link>}
         </div>
       </header>
 
       {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
       {inviteError && <p className="notice"><strong>Invite setup needed</strong><span>Run the invite SQL upgrade in Supabase.</span></p>}
       {productError && <p className="notice"><strong>Product setup needed</strong><span>Run the product-core SQL upgrade in Supabase.</span></p>}
-      {demo && <p className="notice"><strong>HOMEX demo data</strong><span>Vercel is missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Add them, redeploy, and this sample circle will be replaced by your real Supabase data.</span></p>}
+      {demo && <p className="notice"><strong>HOMEX preview</strong><span>You can explore the dashboard pages here. Sign in to create a real care circle, save updates, invite family, and sync data.</span></p>}
 
       <section className="grid-4">
         <Link className="metric" href="/dashboard/tasks"><ClipboardList size={20} /><span>Open tasks</span><strong>{openTasks.length}</strong></Link>

@@ -22,6 +22,8 @@ const secondaryLinks = [
   { href: "/dashboard/app", label: "Install", icon: Smartphone }
 ];
 
+export const dynamic = "force-dynamic";
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">

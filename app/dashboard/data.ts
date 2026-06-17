@@ -49,32 +49,36 @@ export function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
+function demoDashboardData(): DashboardData {
+  return {
+    recipients: [demoRecipient],
+    recipient: demoRecipient,
+    tasks: demoTasks,
+    notes: demoNotes,
+    videos: demoVideos,
+    invites: [],
+    medications: demoMedications,
+    visits: demoVisits,
+    reminders: [],
+    contacts: demoContacts,
+    documents: demoDocuments,
+    memberships: demoMemberships,
+    activity: demoAuditEvents,
+    inviteError: null,
+    productError: null,
+    userEmail: null,
+    demo: true
+  };
+}
+
 export async function loadDashboard(): Promise<DashboardData> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return {
-      recipients: [demoRecipient],
-      recipient: demoRecipient,
-      tasks: demoTasks,
-      notes: demoNotes,
-      videos: demoVideos,
-      invites: [],
-      medications: demoMedications,
-      visits: demoVisits,
-      reminders: [],
-      contacts: demoContacts,
-      documents: demoDocuments,
-      memberships: demoMemberships,
-      activity: demoAuditEvents,
-      inviteError: null,
-      productError: null,
-      userEmail: null,
-      demo: true
-    };
+    return demoDashboardData();
   }
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) redirect("/sign-in");
+  if (!userData.user) return demoDashboardData();
 
   const cookieStore = await cookies();
   const selectedRecipientId = cookieStore.get("homex-care-recipient-id")?.value;
