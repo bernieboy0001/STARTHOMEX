@@ -50,7 +50,7 @@ export function formatDate(value: string | null) {
 }
 
 export async function loadDashboard(): Promise<DashboardData> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return {
       recipients: [demoRecipient],
       recipient: demoRecipient,

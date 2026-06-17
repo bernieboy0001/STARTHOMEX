@@ -2,22 +2,22 @@ import type { AuditEvent, CareDocument, CareMembership, CareNote, CareRecipient,
 
 export const demoRecipient: CareRecipient = {
   id: "demo-recipient",
-  full_name: "Evelyn Carter",
-  recovery_status: "Needs daily medication, meal, appointment, and mobility support",
+  full_name: "HOMEX Demo Care Circle",
+  recovery_status: "Sample data shown because Supabase is not connected in this deployment",
   fall_risk: "Moderate",
   primary_condition: "General elder care",
   emergency_summary: "Escalate for chest pain, new confusion, fever, fall, missed medication, or sudden weakness."
 };
 
 export const demoTasks: Task[] = [
-  { id: "t1", title: "Confirm tomorrow's clinic transport", owner_name: "Maya", due_at: new Date().toISOString(), priority: "high", completed_at: null, completed_by: null, completed_by_name: null },
-  { id: "t2", title: "Pick up Lisinopril refill", owner_name: "Andre", due_at: new Date(Date.now() + 86400000).toISOString(), priority: "medium", completed_at: null, completed_by: null, completed_by_name: null },
-  { id: "t3", title: "Update emergency contact list", owner_name: "Maya", due_at: null, priority: "low", completed_at: new Date().toISOString(), completed_by: "demo-user", completed_by_name: "Maya" }
+  { id: "t1", title: "Connect Supabase environment variables in Vercel", owner_name: "Project owner", due_at: new Date().toISOString(), priority: "high", completed_at: null, completed_by: null, completed_by_name: null },
+  { id: "t2", title: "Run the HOMEX SQL upgrade files in Supabase", owner_name: "Project owner", due_at: new Date(Date.now() + 86400000).toISOString(), priority: "medium", completed_at: null, completed_by: null, completed_by_name: null },
+  { id: "t3", title: "Redeploy after environment variables are saved", owner_name: "Project owner", due_at: null, priority: "low", completed_at: new Date().toISOString(), completed_by: "demo-user", completed_by_name: "Project owner" }
 ];
 
 export const demoNotes: CareNote[] = [
-  { id: "n1", author_name: "Home aide", body: "Ate breakfast and walked to the kitchen with walker. Mild dizziness after standing.", note_type: "shift", created_at: new Date().toISOString() },
-  { id: "n2", author_name: "Andre", body: "Will pick up refill tomorrow morning and bring low-sodium soup.", note_type: "family", created_at: new Date(Date.now() - 86400000).toISOString() }
+  { id: "n1", author_name: "HOMEX", body: "This is sample data. Add Supabase variables in Vercel to show your real care circles.", note_type: "system", created_at: new Date().toISOString() },
+  { id: "n2", author_name: "HOMEX", body: "After saving the variables, redeploy the Vercel project.", note_type: "system", created_at: new Date(Date.now() - 86400000).toISOString() }
 ];
 
 export const demoVideos: CareVideo[] = [
@@ -49,8 +49,8 @@ export const demoVisits: Visit[] = [
 ];
 
 export const demoContacts: Contact[] = [
-  { id: "c1", name: "Maya Carter", role: "Family lead", phone: "+1 555 0101", email: "maya@example.com", notes: "First call for care decisions." },
-  { id: "c2", name: "City Clinic", role: "Primary care", phone: "+1 555 0120", email: null, notes: "Weekday appointments." }
+  { id: "c1", name: "Project owner", role: "Setup lead", phone: null, email: "your-email@example.com", notes: "Replace demo mode by connecting Supabase." },
+  { id: "c2", name: "Supabase project", role: "Database", phone: null, email: null, notes: "Use the project URL and anon key from Supabase settings." }
 ];
 
 export const demoDocuments: CareDocument[] = [
@@ -60,10 +60,10 @@ export const demoDocuments: CareDocument[] = [
 
 export const demoMemberships: CareMembership[] = [
   { id: "cm1", user_id: "demo-user", role: "family_lead", created_at: new Date().toISOString() },
-  { id: "cm2", user_id: "demo-aide", role: "home_aide", created_at: new Date().toISOString() }
+  { id: "cm2", user_id: "demo-aide", role: "agency_coordinator", created_at: new Date().toISOString() }
 ];
 
 export const demoAuditEvents: AuditEvent[] = [
-  { id: "a1", actor_name: "Maya", action: "completed", entity: "task", summary: "Checked off Update emergency contact list.", created_at: new Date().toISOString() },
-  { id: "a2", actor_name: "Andre", action: "created", entity: "note", summary: "Added a family note.", created_at: new Date(Date.now() - 3600000).toISOString() }
+  { id: "a1", actor_name: "HOMEX", action: "created", entity: "demo", summary: "Loaded HOMEX demo data because Supabase variables are missing.", created_at: new Date().toISOString() },
+  { id: "a2", actor_name: "HOMEX", action: "created", entity: "setup", summary: "Connect Supabase in Vercel and redeploy to see real data.", created_at: new Date(Date.now() - 3600000).toISOString() }
 ];

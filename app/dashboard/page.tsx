@@ -29,7 +29,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
       {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
       {inviteError && <p className="notice"><strong>Invite setup needed</strong><span>Run the invite SQL upgrade in Supabase.</span></p>}
       {productError && <p className="notice"><strong>Product setup needed</strong><span>Run the product-core SQL upgrade in Supabase.</span></p>}
-      {demo && <p className="notice"><strong>Demo preview</strong><span>Connect Supabase in Vercel to enable saving, invites, uploads, and live activity.</span></p>}
+      {demo && <p className="notice"><strong>HOMEX demo data</strong><span>Vercel is missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Add them, redeploy, and this sample circle will be replaced by your real Supabase data.</span></p>}
 
       <section className="grid-4">
         <Link className="metric" href="/dashboard/tasks"><ClipboardList size={20} /><span>Open tasks</span><strong>{openTasks.length}</strong></Link>
