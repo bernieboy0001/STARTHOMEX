@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -80,7 +81,9 @@ const reminderSchema = z.object({
 async function currentUser() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) throw new Error("You must be signed in.");
+  if (error || !data.user) {
+    redirect("/sign-in?error=Session+expired.+Please+sign+in+again.");
+  }
   const actorName = (data.user.user_metadata?.full_name as string | undefined) || data.user.email || "Care circle member";
   return { supabase, user: data.user, actorName };
 }
