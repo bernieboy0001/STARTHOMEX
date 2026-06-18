@@ -78,7 +78,7 @@ export async function loadDashboard(): Promise<DashboardData> {
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return demoDashboardData();
+  if (!userData.user) redirect("/sign-in");
 
   const cookieStore = await cookies();
   const selectedRecipientId = cookieStore.get("homex-care-recipient-id")?.value;
