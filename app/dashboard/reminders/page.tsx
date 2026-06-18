@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { BellRing } from "lucide-react";
-import { NotificationControls } from "@/components/notification-controls";
 import { createReminder } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 
 export default async function RemindersPage() {
-  const { reminders, recipient, demo } = await loadDashboard();
-  const careRecipientId = demo ? "00000000-0000-0000-0000-000000000000" : recipient.id;
+  const { reminders, recipient } = await loadDashboard();
+  const careRecipientId = recipient.id;
 
   return (
     <main className="main app-main">
@@ -41,12 +39,8 @@ export default async function RemindersPage() {
               <option value="email">Email follow-up</option>
               <option value="sms">SMS later</option>
             </select>
-            {demo ? <Link className="button" href="/sign-in">Sign in to save</Link> : <button className="button" type="submit">Add reminder</button>}
+            <button className="button" type="submit">Add reminder</button>
           </form>
-        </article>
-        <article className="panel">
-          <div className="panel-head"><h3>This device</h3></div>
-          <NotificationControls publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
         </article>
       </section>
     </main>

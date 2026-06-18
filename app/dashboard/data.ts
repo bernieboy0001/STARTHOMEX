@@ -2,18 +2,6 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import {
-  demoAuditEvents,
-  demoContacts,
-  demoDocuments,
-  demoMedications,
-  demoMemberships,
-  demoNotes,
-  demoRecipient,
-  demoTasks,
-  demoVideos,
-  demoVisits
-} from "@/lib/demo-data";
 import type { AuditEvent, CareDocument, CareMembership, CareNote, CareRecipient, CareVideo, Contact, Medication, Reminder, Task, Visit } from "@/lib/types";
 
 export type Invite = {
@@ -41,7 +29,6 @@ export type DashboardData = {
   inviteError: string | null;
   productError: string | null;
   userEmail: string | null;
-  demo: boolean;
 };
 
 export function formatDate(value: string | null) {
@@ -49,31 +36,9 @@ export function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
-function demoDashboardData(): DashboardData {
-  return {
-    recipients: [demoRecipient],
-    recipient: demoRecipient,
-    tasks: demoTasks,
-    notes: demoNotes,
-    videos: demoVideos,
-    invites: [],
-    medications: demoMedications,
-    visits: demoVisits,
-    reminders: [],
-    contacts: demoContacts,
-    documents: demoDocuments,
-    memberships: demoMemberships,
-    activity: demoAuditEvents,
-    inviteError: null,
-    productError: null,
-    userEmail: null,
-    demo: true
-  };
-}
-
 export async function loadDashboard(): Promise<DashboardData> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return demoDashboardData();
+    redirect("/sign-in");
   }
 
   const supabase = await createClient();
@@ -157,7 +122,6 @@ export async function loadDashboard(): Promise<DashboardData> {
     activity: (activity || []) as AuditEvent[],
     inviteError: invitesResult.error?.message || null,
     productError,
-    userEmail: userData.user.email || null,
-    demo: false
+    userEmail: userData.user.email || null
   };
 }

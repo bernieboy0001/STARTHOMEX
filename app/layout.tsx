@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { PwaRegister } from "@/components/pwa-register";
+import { BrowserSessionCleanup } from "@/components/browser-session-cleanup";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         {children}
-        <PwaRegister />
+        <BrowserSessionCleanup />
       </body>
     </html>
   );

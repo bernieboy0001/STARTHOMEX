@@ -1,16 +1,13 @@
-import Link from "next/link";
 import { WandSparkles } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createCareExtraction } from "./actions";
 import { loadDashboard } from "../data";
 
 export default async function AiPage() {
-  const { recipient, demo } = await loadDashboard();
-  const careRecipientId = demo ? "00000000-0000-0000-0000-000000000000" : recipient.id;
-  const admin = demo ? null : createAdminClient();
-  const { data: extractions } = admin
-    ? await admin.from("care_extractions").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(5)
-    : { data: [] };
+  const { recipient } = await loadDashboard();
+  const careRecipientId = recipient.id;
+  const admin = createAdminClient();
+  const { data: extractions } = await admin.from("care_extractions").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(5);
 
   return (
     <main className="main app-main">
@@ -27,7 +24,7 @@ export default async function AiPage() {
           <form className="form" action={createCareExtraction}>
             <input type="hidden" name="careRecipientId" value={careRecipientId} />
             <textarea name="sourceText" placeholder="Paste discharge note, medication instruction, or home-care update..." required rows={10} />
-            {demo ? <Link className="button" href="/sign-in">Sign in to extract</Link> : <button className="button" type="submit">Extract care summary</button>}
+            <button className="button" type="submit">Extract care summary</button>
           </form>
         </article>
         <article className="panel">

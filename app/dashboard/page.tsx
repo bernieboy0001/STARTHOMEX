@@ -1,19 +1,14 @@
 import Link from "next/link";
 import { CalendarDays, ClipboardList, FileText, FileVideo, HeartPulse, Pill, UsersRound } from "lucide-react";
-import { OfflineEmergencyCache } from "@/components/offline-emergency-cache";
-import { OfflineDashboardCache } from "@/components/offline-dashboard-cache";
-import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { formatDate, loadDashboard } from "./data";
 
 export default async function DashboardPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const query = await searchParams;
-  const { recipient, tasks, medications, visits, reminders, contacts, documents, notes, activity, videos, inviteError, productError, userEmail, demo } = await loadDashboard();
+  const { recipient, tasks, medications, visits, reminders, contacts, documents, notes, activity, videos, inviteError, productError, userEmail } = await loadDashboard();
   const openTasks = tasks.filter(task => !task.completed_at);
 
   return (
     <main className="main app-main">
-      <OfflineEmergencyCache recipient={recipient} contacts={contacts} medications={medications} visits={visits} />
-      <OfflineDashboardCache snapshot={{ recipient, tasks, medications, visits, reminders, contacts, documents, notes, activity }} />
       <header className="page-head">
         <div>
           <p className="eyebrow">Care circle</p>
@@ -21,15 +16,14 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
           <p className="muted">{recipient.recovery_status}</p>
         </div>
         <div className="actions compact-actions">
-          <Link className="button" href={demo ? "/sign-in" : "/dashboard/family"}>{demo ? "Sign in to save" : "Invite family"}</Link>
-          {userEmail ? <Link className="ghost" href="/sign-out">Sign out</Link> : <Link className="ghost" href="/sign-in">Sign in</Link>}
+          <Link className="button" href="/dashboard/family">Invite family</Link>
+          <Link className="ghost" href="/sign-out">Sign out</Link>
         </div>
       </header>
 
       {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
       {inviteError && <p className="notice"><strong>Invite setup needed</strong><span>Run the invite SQL upgrade in Supabase.</span></p>}
       {productError && <p className="notice"><strong>Product setup needed</strong><span>Run the product-core SQL upgrade in Supabase.</span></p>}
-      {demo && <p className="notice"><strong>Preview mode</strong><span>You can explore the pages and type into forms. Sign in before saving, inviting family, or syncing real care-circle data.</span></p>}
 
       <section className="grid-4">
         <Link className="metric" href="/dashboard/tasks"><ClipboardList size={20} /><span>Open tasks</span><strong>{openTasks.length}</strong></Link>
@@ -64,12 +58,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
         <Link className="card" href="/dashboard/documents"><FileText size={20} /><strong>Documents</strong><span>Store important care links and notes.</span></Link>
         <Link className="card" href="/dashboard/notes"><HeartPulse size={20} /><strong>Care notes</strong><span>Log what changed today.</span></Link>
         <Link className="card" href="/dashboard/reminders"><CalendarDays size={20} /><strong>Reminders</strong><span>Set follow-ups and device alerts.</span></Link>
-        <Link className="card" href="/dashboard/app"><FileVideo size={20} /><strong>Install app</strong><span>Add HOMEX to your phone home screen.</span></Link>
-      </section>
-
-      <section className="panel app-section">
-        <div className="panel-head"><h3>Phone app setup</h3></div>
-        <PwaInstallPrompt />
+        <Link className="card" href="/dashboard/videos"><FileVideo size={20} /><strong>Care videos</strong><span>Keep walkthroughs and training clips in one place.</span></Link>
       </section>
     </main>
   );
