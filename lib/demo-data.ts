@@ -2,8 +2,8 @@ import type { AuditEvent, CareDocument, CareMembership, CareNote, CareRecipient,
 
 export const demoRecipient: CareRecipient = {
   id: "demo-recipient",
-  full_name: "HOMEX Demo Care Circle",
-  recovery_status: "Sample data shown because Supabase is not connected in this deployment",
+  full_name: "HOMEX Preview Care Circle",
+  recovery_status: "Preview mode shown until you sign in and open a real care circle",
   fall_risk: "Moderate",
   primary_condition: "General elder care",
   emergency_summary: "Escalate for chest pain, new confusion, fever, fall, missed medication, or sudden weakness."

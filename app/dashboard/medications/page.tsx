@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createMedication } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 
@@ -14,7 +15,7 @@ export default async function MedicationsPage() {
           {medications.map(med => <div className="row" key={med.id}><strong>{med.name} {med.dosage || ""}</strong><span>{med.schedule}</span><span>{med.instructions || "No instructions"} / Refill: {med.refill_due_at ? formatDate(med.refill_due_at) : "Not set"}</span></div>)}
         </div></article>
         <article className="panel"><div className="panel-head"><h3>Add medication</h3></div><form className="form" action={createMedication}>
-          <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="name" placeholder="Medication name" required disabled={demo} /><input name="dosage" placeholder="Dosage" disabled={demo} /><input name="schedule" placeholder="Schedule" required disabled={demo} /><input name="prescribedBy" placeholder="Prescribed by" disabled={demo} /><input name="refillDueAt" type="date" disabled={demo} /><textarea name="instructions" placeholder="Instructions" disabled={demo} /><button className="button" type="submit" disabled={demo}>Add medication</button>
+          <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="name" placeholder="Medication name" required /><input name="dosage" placeholder="Dosage" /><input name="schedule" placeholder="Schedule" required /><input name="prescribedBy" placeholder="Prescribed by" /><input name="refillDueAt" type="date" /><textarea name="instructions" placeholder="Instructions" />{demo ? <Link className="button" href="/sign-in">Sign in to save</Link> : <button className="button" type="submit">Add medication</button>}
         </form></article>
       </section>
     </main>

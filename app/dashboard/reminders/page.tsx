@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BellRing } from "lucide-react";
 import { NotificationControls } from "@/components/notification-controls";
 import { createReminder } from "../actions";
@@ -33,14 +34,14 @@ export default async function RemindersPage() {
           <div className="panel-head"><h3>Add reminder</h3></div>
           <form className="form" action={createReminder}>
             <input type="hidden" name="careRecipientId" value={careRecipientId} />
-            <input name="title" placeholder="Reminder title" required disabled={demo} />
-            <input name="remindAt" type="datetime-local" required disabled={demo} />
-            <select name="channel" defaultValue="app" disabled={demo}>
+            <input name="title" placeholder="Reminder title" required />
+            <input name="remindAt" type="datetime-local" required />
+            <select name="channel" defaultValue="app">
               <option value="app">App push</option>
               <option value="email">Email follow-up</option>
               <option value="sms">SMS later</option>
             </select>
-            <button className="button" type="submit" disabled={demo}>Add reminder</button>
+            {demo ? <Link className="button" href="/sign-in">Sign in to save</Link> : <button className="button" type="submit">Add reminder</button>}
           </form>
         </article>
         <article className="panel">

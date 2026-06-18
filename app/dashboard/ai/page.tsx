@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { WandSparkles } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createCareExtraction } from "./actions";
@@ -25,8 +26,8 @@ export default async function AiPage() {
           <div className="panel-head"><h3>Extract from text</h3><WandSparkles size={20} /></div>
           <form className="form" action={createCareExtraction}>
             <input type="hidden" name="careRecipientId" value={careRecipientId} />
-            <textarea name="sourceText" placeholder="Paste discharge note, medication instruction, or home-care update..." required disabled={demo} rows={10} />
-            <button className="button" type="submit" disabled={demo}>Extract care summary</button>
+            <textarea name="sourceText" placeholder="Paste discharge note, medication instruction, or home-care update..." required rows={10} />
+            {demo ? <Link className="button" href="/sign-in">Sign in to extract</Link> : <button className="button" type="submit">Extract care summary</button>}
           </form>
         </article>
         <article className="panel">

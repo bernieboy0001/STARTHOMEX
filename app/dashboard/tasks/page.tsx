@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TaskCompletionRow } from "@/components/task-completion-row";
 import { createTask } from "../actions";
 import { loadDashboard } from "../data";
@@ -13,11 +14,11 @@ export default async function TasksPage() {
         <article className="panel"><div className="panel-head"><h3>Open and completed tasks</h3></div><div className="rows">{tasks.map(task => <TaskCompletionRow task={task} careRecipientId={careRecipientId} disabled={demo} key={task.id} />)}</div></article>
         <article className="panel"><div className="panel-head"><h3>Create task</h3></div><form className="form" action={createTask}>
           <input type="hidden" name="careRecipientId" value={careRecipientId} />
-          <input name="title" placeholder="Call pharmacy about refill" required disabled={demo} />
-          <input name="ownerName" placeholder="Owner name" required disabled={demo} />
-          <input name="dueAt" type="datetime-local" disabled={demo} />
-          <select name="priority" defaultValue="medium" disabled={demo}><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
-          <button className="button" type="submit" disabled={demo}>Create task</button>
+          <input name="title" placeholder="Call pharmacy about refill" required />
+          <input name="ownerName" placeholder="Owner name" required />
+          <input name="dueAt" type="datetime-local" />
+          <select name="priority" defaultValue="medium"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+          {demo ? <Link className="button" href="/sign-in">Sign in to save</Link> : <button className="button" type="submit">Create task</button>}
         </form></article>
       </section>
     </main>

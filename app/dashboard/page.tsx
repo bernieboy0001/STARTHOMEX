@@ -29,7 +29,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
       {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
       {inviteError && <p className="notice"><strong>Invite setup needed</strong><span>Run the invite SQL upgrade in Supabase.</span></p>}
       {productError && <p className="notice"><strong>Product setup needed</strong><span>Run the product-core SQL upgrade in Supabase.</span></p>}
-      {demo && <p className="notice"><strong>HOMEX preview</strong><span>You can explore the dashboard pages here. Sign in to create a real care circle, save updates, invite family, and sync data.</span></p>}
+      {demo && <p className="notice"><strong>Preview mode</strong><span>You can explore the pages and type into forms. Sign in before saving, inviting family, or syncing real care-circle data.</span></p>}
 
       <section className="grid-4">
         <Link className="metric" href="/dashboard/tasks"><ClipboardList size={20} /><span>Open tasks</span><strong>{openTasks.length}</strong></Link>

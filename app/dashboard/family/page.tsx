@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createContact } from "../actions";
 import { createInviteLink, revokeInviteLink, revokeMemberAccess } from "../invite-actions";
 import { formatDate, loadDashboard } from "../data";
@@ -14,7 +15,7 @@ export default async function FamilyPage({ searchParams }: { searchParams?: Prom
       <header className="page-head"><div><p className="eyebrow">Family & team</p><h2>Manage trusted access</h2><p className="muted">Invite family, aides, clinicians, and coordinators into this circle.</p></div></header>
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Create invite link</h3></div>
-          <form className="form" action={createInviteLink}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="invitedEmail" type="email" placeholder="Optional: family@example.com" disabled={demo} /><select name="role" defaultValue="family_member" disabled={demo}><option value="family_member">Family member</option><option value="home_aide">Home aide</option><option value="agency_coordinator">Agency coordinator</option><option value="clinician">Clinician</option></select><button className="button" type="submit" disabled={demo}>Generate invite link</button></form>
+          <form className="form" action={createInviteLink}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="invitedEmail" type="email" placeholder="Optional: family@example.com" /><select name="role" defaultValue="family_member"><option value="family_member">Family member</option><option value="home_aide">Home aide</option><option value="agency_coordinator">Agency coordinator</option><option value="clinician">Clinician</option></select>{demo ? <Link className="button" href="/sign-in">Sign in to invite</Link> : <button className="button" type="submit">Generate invite link</button>}</form>
           {latestInviteUrl && <div className="row copy-row"><strong>Share this link</strong><span>{latestInviteUrl}</span></div>}
         </article>
         <article className="panel"><div className="panel-head"><h3>Members and invites</h3></div><div className="rows">
@@ -34,7 +35,7 @@ export default async function FamilyPage({ searchParams }: { searchParams?: Prom
       </section>
       <section className="grid-2 app-section">
         <article className="panel"><div className="panel-head"><h3>Contacts</h3></div><div className="rows">{contacts.map(contact => <div className="row" key={contact.id}><strong>{contact.name} / {contact.role}</strong><span>{contact.phone || "No phone"} / {contact.email || "No email"}</span><span>{contact.notes}</span></div>)}</div></article>
-        <article className="panel"><div className="panel-head"><h3>Add contact</h3></div><form className="form" action={createContact}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="name" placeholder="Name" required disabled={demo} /><input name="role" placeholder="Role" required disabled={demo} /><input name="phone" placeholder="Phone" disabled={demo} /><input name="email" type="email" placeholder="Email" disabled={demo} /><textarea name="notes" placeholder="Notes" disabled={demo} /><button className="button" type="submit" disabled={demo}>Add contact</button></form></article>
+        <article className="panel"><div className="panel-head"><h3>Add contact</h3></div><form className="form" action={createContact}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="name" placeholder="Name" required /><input name="role" placeholder="Role" required /><input name="phone" placeholder="Phone" /><input name="email" type="email" placeholder="Email" /><textarea name="notes" placeholder="Notes" />{demo ? <Link className="button" href="/sign-in">Sign in to save</Link> : <button className="button" type="submit">Add contact</button>}</form></article>
       </section>
     </main>
   );

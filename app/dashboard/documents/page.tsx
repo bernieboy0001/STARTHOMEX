@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createDocument } from "../actions";
 import { DocumentCameraUpload } from "@/components/document-camera-upload";
 import { loadDashboard } from "../data";
@@ -15,7 +16,7 @@ export default async function DocumentsPage() {
           {documents.map(doc => <div className="row" key={doc.id}><strong>{doc.external_url ? <a href={doc.external_url} target="_blank" rel="noreferrer">{doc.title}</a> : doc.title}</strong><span>{doc.category} / {doc.notes || "No notes"}</span></div>)}
         </div></article>
         <article className="panel"><div className="panel-head"><h3>Add document link</h3></div><form className="form" action={createDocument}>
-          <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="title" placeholder="Document title" required disabled={demo} /><input name="category" placeholder="Category" required disabled={demo} /><input name="externalUrl" type="url" placeholder="Optional secure link" disabled={demo} /><textarea name="notes" placeholder="Notes" disabled={demo} /><button className="button" type="submit" disabled={demo}>Add document</button>
+          <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="title" placeholder="Document title" required /><input name="category" placeholder="Category" required /><input name="externalUrl" type="url" placeholder="Optional secure link" /><textarea name="notes" placeholder="Notes" />{demo ? <Link className="button" href="/sign-in">Sign in to save</Link> : <button className="button" type="submit">Add document</button>}
         </form></article>
         <article className="panel"><div className="panel-head"><h3>Camera scan</h3></div><DocumentCameraUpload careRecipientId={careRecipientId} disabled={demo} /></article>
       </section>
