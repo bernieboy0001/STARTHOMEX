@@ -27,7 +27,8 @@ export async function middleware(request: NextRequest) {
     }
   });
 
-  await supabase.auth.getUser();
+  // Refresh the session - this is crucial for token refresh on Vercel
+  await supabase.auth.getSession();
 
   return response;
 }
