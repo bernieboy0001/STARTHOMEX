@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Activity, BellRing, Building2, CalendarDays, ClipboardList, FileText, HeartPulse, Home, Layers, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { requireUser } from "@/lib/auth";
 
 const primaryLinks = [
   { href: "/dashboard", label: "Home", icon: Home },
@@ -23,7 +24,9 @@ const secondaryLinks = [
 
 export const dynamic = "force-dynamic";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await requireUser();
+
   return (
     <div className="app-shell">
       <aside className="app-rail">
