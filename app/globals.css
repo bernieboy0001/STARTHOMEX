@@ -109,7 +109,8 @@ button { cursor: pointer; }
 }
 
 .mobile-app-bar,
-.mobile-tabs {
+.mobile-tabs,
+.mobile-menu {
   display: none;
 }
 
@@ -647,6 +648,47 @@ textarea { min-height: 110px; resize: vertical; }
     background: var(--rail);
     backdrop-filter: blur(18px);
   }
+  .mobile-menu {
+    position: relative;
+    display: block;
+  }
+  .mobile-menu-button {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink);
+    background: var(--surface);
+  }
+  .mobile-menu-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 10px);
+    right: 0;
+    width: min(260px, calc(100vw - 24px));
+    display: grid;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    box-shadow: var(--shadow);
+  }
+  .mobile-menu-panel a {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    color: var(--muted);
+  }
+  .mobile-menu-panel a:hover {
+    color: var(--ink);
+    background: var(--green-soft);
+  }
   .mobile-app-bar .brand {
     margin-bottom: 0;
     min-width: 0;
@@ -654,6 +696,9 @@ textarea { min-height: 110px; resize: vertical; }
   .mobile-app-bar .brand-logo {
     width: 36px;
     height: 36px;
+  }
+  .mobile-app-bar .theme-toggle {
+    margin-left: auto;
   }
   .mobile-tabs {
     position: fixed;

@@ -1,22 +1,24 @@
 import Link from "next/link";
-import { Activity, BellRing, CalendarDays, ClipboardList, FileText, HeartPulse, Home, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
+import { Activity, BellRing, CalendarDays, ClipboardList, FileText, HeartPulse, Home, LogOut, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
+import { MobileDashboardMenu } from "@/components/mobile-dashboard-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const primaryLinks = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/dashboard/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/dashboard/medications", label: "Meds", icon: Pill },
-  { href: "/dashboard/visits", label: "Visits", icon: CalendarDays }
+  { href: "/dashboard/visits", label: "Visits", icon: CalendarDays },
+  { href: "/dashboard/family", label: "Family", icon: UsersRound }
 ];
 
 const secondaryLinks = [
-  { href: "/dashboard/family", label: "Family", icon: UsersRound },
   { href: "/dashboard/documents", label: "Docs", icon: FileText },
   { href: "/dashboard/reminders", label: "Alerts", icon: BellRing },
   { href: "/dashboard/notes", label: "Notes", icon: HeartPulse },
   { href: "/dashboard/ai", label: "Extract", icon: WandSparkles },
   { href: "/dashboard/activity", label: "Activity", icon: Activity },
-  { href: "/dashboard/videos", label: "Videos", icon: Video }
+  { href: "/dashboard/videos", label: "Videos", icon: Video },
+  { href: "/sign-out", label: "Sign out", icon: LogOut }
 ];
 
 export const dynamic = "force-dynamic";
@@ -44,6 +46,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <span><strong>HOMEX</strong><span>Care at home</span></span>
           </Link>
           <ThemeToggle />
+          <MobileDashboardMenu />
         </header>
         {children}
         <nav className="mobile-tabs">
