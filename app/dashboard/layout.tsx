@@ -17,8 +17,7 @@ const secondaryLinks = [
   { href: "/dashboard/notes", label: "Notes", icon: HeartPulse },
   { href: "/dashboard/ai", label: "Extract", icon: WandSparkles },
   { href: "/dashboard/activity", label: "Activity", icon: Activity },
-  { href: "/dashboard/videos", label: "Videos", icon: Video },
-  { href: "/sign-out", label: "Sign out", icon: LogOut }
+  { href: "/dashboard/videos", label: "Videos", icon: Video }
 ];
 
 export const dynamic = "force-dynamic";
@@ -38,6 +37,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
             return <Link href={item.href} key={item.href}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
         </nav>
+        <Link href="/sign-out" className="app-sign-out">
+          <LogOut size={18} />
+          <span>Sign out</span>
+        </Link>
       </aside>
       <div className="app-view">
         <header className="mobile-app-bar">

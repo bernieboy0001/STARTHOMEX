@@ -70,6 +70,8 @@ button { cursor: pointer; }
   position: sticky;
   top: 0;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
   padding: 18px;
   border-right: 1px solid var(--line);
   background: var(--rail);
@@ -106,6 +108,24 @@ button { cursor: pointer; }
 .mobile-tabs a:hover {
   color: var(--ink);
   background: var(--green-soft);
+}
+
+.app-sign-out {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--coral);
+  background: var(--surface);
+}
+
+.app-sign-out:hover {
+  color: var(--ink);
+  background: rgba(227, 109, 79, 0.12);
 }
 
 .mobile-app-bar,
