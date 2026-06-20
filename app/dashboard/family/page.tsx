@@ -2,8 +2,9 @@ import { createContact } from "../actions";
 import { createInviteLink, revokeInviteLink, revokeMemberAccess } from "../invite-actions";
 import { formatDate, loadDashboard } from "../data";
 import { inviteUrl } from "@/lib/invites";
+import { SaveStatusNotice } from "@/components/save-status-notice";
 
-export default async function FamilyPage({ searchParams }: { searchParams?: Promise<{ invite?: string }> }) {
+export default async function FamilyPage({ searchParams }: { searchParams?: Promise<{ invite?: string; save?: "database-not-connected" | "error" | "saved" }> }) {
   const query = await searchParams;
   const data = await loadDashboard();
   const { recipient, contacts, memberships, invites } = data;
@@ -13,6 +14,7 @@ export default async function FamilyPage({ searchParams }: { searchParams?: Prom
   return (
     <main className="main app-main">
       <header className="page-head"><div><p className="eyebrow">Family & team</p><h2>Manage trusted access</h2><p className="muted">Invite family, aides, clinicians, and coordinators into this circle.</p></div></header>
+      <SaveStatusNotice status={query?.save} />
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Create invite link</h3></div>
           <form className="form" action={createInviteLink}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="invitedEmail" type="email" placeholder="Optional: family@example.com" /><select name="role" defaultValue="family_member"><option value="family_member">Family member</option><option value="home_aide">Home aide</option><option value="agency_coordinator">Agency coordinator</option><option value="clinician">Clinician</option></select><button className="button" type="submit">Generate invite link</button></form>

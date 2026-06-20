@@ -2,13 +2,21 @@ import { WandSparkles } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createCareExtraction } from "./actions";
 import { loadDashboard } from "../data";
+import { SaveStatusNotice } from "@/components/save-status-notice";
 
-export default async function AiPage() {
+export default async function AiPage({ searchParams }: { searchParams?: Promise<{ save?: "database-not-connected" | "error" | "saved" }> }) {
+  const query = await searchParams;
   const data = await loadDashboard();
   const { recipient } = data;
   const careRecipientId = recipient.id;
-  const admin = createAdminClient();
-  const { data: extractions } = await admin.from("care_extractions").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(5);
+  let extractions: { id: string; summary: string; suggested_tasks: string[] | null }[] = [];
+  try {
+    const admin = createAdminClient();
+    const { data: extractionRows } = await admin.from("care_extractions").select("*").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(5);
+    extractions = extractionRows || [];
+  } catch (error) {
+    console.error("AI extraction load failed", error);
+  }
 
   return (
     <main className="main app-main">
@@ -19,6 +27,7 @@ export default async function AiPage() {
           <p className="muted">Paste discharge instructions, aide notes, or appointment summaries and HOMEX will pull out a summary, action items, and red flags.</p>
         </div>
       </header>
+      <SaveStatusNotice status={query?.save} />
       <section className="grid-2">
         <article className="panel">
           <div className="panel-head"><h3>Extract from text</h3><WandSparkles size={20} /></div>

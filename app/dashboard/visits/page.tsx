@@ -1,7 +1,9 @@
 import { createVisit } from "../actions";
 import { formatDate, loadDashboard } from "../data";
+import { SaveStatusNotice } from "@/components/save-status-notice";
 
-export default async function VisitsPage() {
+export default async function VisitsPage({ searchParams }: { searchParams?: Promise<{ save?: "database-not-connected" | "error" | "saved" }> }) {
+  const query = await searchParams;
   const data = await loadDashboard();
   const { visits, recipient } = data;
   const careRecipientId = recipient.id;
@@ -9,6 +11,7 @@ export default async function VisitsPage() {
   return (
     <main className="main app-main">
       <header className="page-head"><div><p className="eyebrow">Appointments</p><h2>Visits and follow-ups</h2><p className="muted">Clinic visits, therapy sessions, calls, and home aide visits.</p></div></header>
+      <SaveStatusNotice status={query?.save} />
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Upcoming</h3></div><div className="rows">
           {visits.length === 0 && <div className="row"><strong>No appointments yet</strong><span>Add clinic visits, therapy sessions, calls, and home aide visits.</span></div>}

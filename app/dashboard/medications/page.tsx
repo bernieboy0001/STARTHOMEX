@@ -1,7 +1,9 @@
 import { createMedication } from "../actions";
 import { formatDate, loadDashboard } from "../data";
+import { SaveStatusNotice } from "@/components/save-status-notice";
 
-export default async function MedicationsPage() {
+export default async function MedicationsPage({ searchParams }: { searchParams?: Promise<{ save?: "database-not-connected" | "error" | "saved" }> }) {
+  const query = await searchParams;
   const data = await loadDashboard();
   const { medications, recipient } = data;
   const careRecipientId = recipient.id;
@@ -9,6 +11,7 @@ export default async function MedicationsPage() {
   return (
     <main className="main app-main">
       <header className="page-head"><div><p className="eyebrow">Medications</p><h2>Medication schedule</h2><p className="muted">Track dosage, instructions, and refill dates.</p></div></header>
+      <SaveStatusNotice status={query?.save} />
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Active medications</h3></div><div className="rows">
           {medications.length === 0 && <div className="row"><strong>No medications yet</strong><span>Add medications, schedules, refill dates, and instructions.</span></div>}

@@ -22,7 +22,13 @@ const revokeMemberSchema = z.object({
 });
 
 async function getCircle(careRecipientId: string) {
-  const admin = createAdminClient();
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (error) {
+    console.error("Invite database client error", error);
+    redirect("/dashboard/family?save=database-not-connected");
+  }
   const { data, error } = await admin
     .from("care_recipients")
     .select("organization_id")
@@ -30,7 +36,7 @@ async function getCircle(careRecipientId: string) {
     .single();
 
   if (error || !data) {
-    throw new Error("Care circle not found.");
+    redirect("/dashboard/family?save=error");
   }
 
   return data;
@@ -58,11 +64,12 @@ export async function createInviteLink(formData: FormData) {
     .single();
 
   if (error) {
-    redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+    console.error("Invite creation failed", error);
+    redirect("/dashboard/family?save=error");
   }
 
-  revalidatePath("/dashboard");
-  redirect(`/dashboard?invite=${data.token}`);
+  revalidatePath("/dashboard/family");
+  redirect(`/dashboard/family?invite=${data.token}`);
 }
 
 export async function revokeInviteLink(formData: FormData) {
@@ -70,7 +77,13 @@ export async function revokeInviteLink(formData: FormData) {
     token: formData.get("token"),
     careRecipientId: formData.get("careRecipientId")
   });
-  const admin = createAdminClient();
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (error) {
+    console.error("Invite revoke database client error", error);
+    redirect("/dashboard/family?save=database-not-connected");
+  }
 
   const { error } = await admin
     .from("care_circle_invites")
@@ -78,9 +91,12 @@ export async function revokeInviteLink(formData: FormData) {
     .eq("token", parsed.token)
     .eq("care_recipient_id", parsed.careRecipientId);
 
-  if (error) redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
-  revalidatePath("/dashboard");
-  redirect("/dashboard#invite");
+  if (error) {
+    console.error("Invite revoke failed", error);
+    redirect("/dashboard/family?save=error");
+  }
+  revalidatePath("/dashboard/family");
+  redirect("/dashboard/family");
 }
 
 export async function revokeMemberAccess(formData: FormData) {
@@ -88,7 +104,13 @@ export async function revokeMemberAccess(formData: FormData) {
     membershipId: formData.get("membershipId"),
     careRecipientId: formData.get("careRecipientId")
   });
-  const admin = createAdminClient();
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (error) {
+    console.error("Member revoke database client error", error);
+    redirect("/dashboard/family?save=database-not-connected");
+  }
 
   const { data: membership, error: membershipError } = await admin
     .from("care_memberships")
@@ -98,7 +120,7 @@ export async function revokeMemberAccess(formData: FormData) {
     .single();
 
   if (membershipError || !membership) {
-    redirect("/dashboard?error=Membership%20not%20found");
+    redirect("/dashboard/family?save=error");
   }
 
   const { error } = await admin
@@ -107,7 +129,10 @@ export async function revokeMemberAccess(formData: FormData) {
     .eq("id", parsed.membershipId)
     .eq("care_recipient_id", parsed.careRecipientId);
 
-  if (error) redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
-  revalidatePath("/dashboard");
-  redirect("/dashboard#invite");
+  if (error) {
+    console.error("Member revoke failed", error);
+    redirect("/dashboard/family?save=error");
+  }
+  revalidatePath("/dashboard/family");
+  redirect("/dashboard/family");
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -76,12 +77,22 @@ const reminderSchema = z.object({
   channel: z.enum(["app", "email", "sms"]).default("app")
 });
 
-async function currentUser() {
-  return {
-    supabase: createAdminClient(),
-    user: { id: null },
-    actorName: "HOMEX dashboard user"
-  };
+async function currentUser(errorPath = "/dashboard") {
+  try {
+    return {
+      supabase: createAdminClient(),
+      user: { id: null },
+      actorName: "HOMEX dashboard user"
+    };
+  } catch (error) {
+    console.error("Dashboard database client error", error);
+    redirect(`${errorPath}?save=database-not-connected`);
+  }
+}
+
+function failSave(path: string, error: unknown) {
+  console.error("Dashboard save failed", error);
+  redirect(`${path}?save=error`);
 }
 
 async function recordActivity(input: {
@@ -93,14 +104,21 @@ async function recordActivity(input: {
   entityId?: string | null;
   summary: string;
 }) {
-  const admin = createAdminClient();
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (error) {
+    console.error("Activity database client error", error);
+    return;
+  }
+
   const { data: recipient } = await admin
     .from("care_recipients")
     .select("organization_id")
     .eq("id", input.careRecipientId)
     .single();
 
-  await admin.from("audit_events").insert({
+  const { error } = await admin.from("audit_events").insert({
     organization_id: recipient?.organization_id || null,
     care_recipient_id: input.careRecipientId,
     actor_id: input.actorId,
@@ -110,6 +128,8 @@ async function recordActivity(input: {
     entity_id: input.entityId || null,
     summary: input.summary
   });
+
+  if (error) console.error("Activity save failed", error);
 }
 
 export async function createTask(formData: FormData) {
@@ -121,7 +141,7 @@ export async function createTask(formData: FormData) {
     dueAt: formData.get("dueAt") || undefined
   });
 
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
   const { data, error } = await supabase.from("tasks").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -131,7 +151,7 @@ export async function createTask(formData: FormData) {
     created_by: user.id
   }).select("id").single();
 
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/tasks", error);
   await recordActivity({
     careRecipientId: parsed.careRecipientId,
     actorId: user.id,
@@ -151,7 +171,7 @@ export async function toggleTaskCompletion(formData: FormData) {
     completed: formData.get("completed") ? "on" : "off"
   });
 
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
 
   const checked = parsed.completed === "on";
   const name =
@@ -167,7 +187,7 @@ export async function toggleTaskCompletion(formData: FormData) {
     .eq("id", parsed.taskId)
     .eq("care_recipient_id", parsed.careRecipientId);
 
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/tasks", error);
   await recordActivity({
     careRecipientId: parsed.careRecipientId,
     actorId: user.id,
@@ -188,7 +208,7 @@ export async function createNote(formData: FormData) {
     noteType: formData.get("noteType") || "general"
   });
 
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/notes");
   const { data, error } = await supabase.from("care_notes").insert({
     care_recipient_id: parsed.careRecipientId,
     author_id: user.id,
@@ -197,7 +217,7 @@ export async function createNote(formData: FormData) {
     note_type: parsed.noteType
   }).select("id").single();
 
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/notes", error);
   await recordActivity({
     careRecipientId: parsed.careRecipientId,
     actorId: user.id,
@@ -219,7 +239,7 @@ export async function createVideo(formData: FormData) {
     embedUrl: formData.get("embedUrl") || ""
   });
 
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/videos");
   const { data, error } = await supabase.from("caregiver_videos").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -229,7 +249,7 @@ export async function createVideo(formData: FormData) {
     created_by: user.id
   }).select("id").single();
 
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/videos", error);
   await recordActivity({
     careRecipientId: parsed.careRecipientId,
     actorId: user.id,
@@ -252,7 +272,7 @@ export async function createMedication(formData: FormData) {
     prescribedBy: formData.get("prescribedBy") || undefined,
     refillDueAt: formData.get("refillDueAt") || undefined
   });
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/medications");
   const { data, error } = await supabase.from("medications").insert({
     care_recipient_id: parsed.careRecipientId,
     name: parsed.name,
@@ -262,7 +282,7 @@ export async function createMedication(formData: FormData) {
     prescribed_by: parsed.prescribedBy || null,
     refill_due_at: parsed.refillDueAt || null
   }).select("id").single();
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/medications", error);
   await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "medication", entityId: data?.id, summary: `Added medication: ${parsed.name}.` });
   revalidatePath("/dashboard");
 }
@@ -276,7 +296,7 @@ export async function createVisit(formData: FormData) {
     providerName: formData.get("providerName") || undefined,
     preparationNotes: formData.get("preparationNotes") || undefined
   });
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/visits");
   const { data, error } = await supabase.from("visits").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -285,7 +305,7 @@ export async function createVisit(formData: FormData) {
     provider_name: parsed.providerName || null,
     preparation_notes: parsed.preparationNotes || null
   }).select("id").single();
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/visits", error);
   await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "visit", entityId: data?.id, summary: `Added appointment: ${parsed.title}.` });
   revalidatePath("/dashboard");
 }
@@ -299,7 +319,7 @@ export async function createContact(formData: FormData) {
     email: formData.get("email") || "",
     notes: formData.get("notes") || undefined
   });
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/family");
   const { data, error } = await supabase.from("contacts").insert({
     care_recipient_id: parsed.careRecipientId,
     name: parsed.name,
@@ -308,7 +328,7 @@ export async function createContact(formData: FormData) {
     email: parsed.email || null,
     notes: parsed.notes || null
   }).select("id").single();
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/family", error);
   await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "contact", entityId: data?.id, summary: `Added contact: ${parsed.name}.` });
   revalidatePath("/dashboard");
 }
@@ -321,7 +341,7 @@ export async function createDocument(formData: FormData) {
     externalUrl: formData.get("externalUrl") || "",
     notes: formData.get("notes") || undefined
   });
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/documents");
   const { data, error } = await supabase.from("documents").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -330,7 +350,7 @@ export async function createDocument(formData: FormData) {
     notes: parsed.notes || null,
     uploaded_by: user.id
   }).select("id").single();
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/documents", error);
   await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "document", entityId: data?.id, summary: `Added document: ${parsed.title}.` });
   revalidatePath("/dashboard");
 }
@@ -343,7 +363,7 @@ export async function createReminder(formData: FormData) {
     channel: formData.get("channel") || "app"
   });
 
-  const { supabase, user, actorName } = await currentUser();
+  const { supabase, user, actorName } = await currentUser("/dashboard/reminders");
   const { data, error } = await supabase.from("reminders").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -352,7 +372,7 @@ export async function createReminder(formData: FormData) {
     created_by: user.id
   }).select("id").single();
 
-  if (error) throw new Error(error.message);
+  if (error) failSave("/dashboard/reminders", error);
   await recordActivity({
     careRecipientId: parsed.careRecipientId,
     actorId: user.id,
