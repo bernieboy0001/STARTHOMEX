@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Activity, BellRing, CalendarDays, ClipboardList, FileText, HeartPulse, Home, Layers, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
+import { Activity, BellRing, CalendarDays, ClipboardList, FileText, HeartPulse, Home, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const primaryLinks = [
   { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/dashboard/circles", label: "Circles", icon: Layers },
   { href: "/dashboard/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/dashboard/medications", label: "Meds", icon: Pill },
   { href: "/dashboard/visits", label: "Visits", icon: CalendarDays }

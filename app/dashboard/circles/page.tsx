@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { requireSuperAdmin } from "@/lib/auth";
 import { loadDashboard } from "../data";
 
 export default async function CirclesPage() {
+  await requireSuperAdmin();
   const data = await loadDashboard();
   const { recipients, recipient } = data;
 

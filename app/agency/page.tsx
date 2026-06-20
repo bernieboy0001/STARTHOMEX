@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { isSuperAdminEmail, requireUser } from "@/lib/auth";
@@ -45,7 +44,6 @@ export default async function AgencyPage() {
             <div className="row" key={recipient.id}>
               <strong>{recipient.full_name}</strong>
               <span>{recipient.recovery_status || "General care"} / {memberCount.get(recipient.id) || 0} members</span>
-              <Link className="ghost small" href={`/dashboard/select-circle/${recipient.id}`}>Open circle</Link>
             </div>
           ))}
         </div>

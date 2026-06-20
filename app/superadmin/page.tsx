@@ -129,9 +129,12 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
           <div className="panel-head"><h3>Care circles</h3></div>
           <div className="rows">
             {recipients.map(recipient => (
-              <div className="row" key={recipient.id}>
-                <strong>{recipient.full_name}</strong>
-                <span>{relatedName(recipient.organizations, "name")} / {recipient.recovery_status || "No status"}</span>
+              <div className="row split-row" key={recipient.id}>
+                <span>
+                  <strong>{recipient.full_name}</strong>
+                  <span>{relatedName(recipient.organizations, "name")} / {recipient.recovery_status || "No status"}</span>
+                </span>
+                <Link className="ghost" href={`/dashboard/select-circle/${recipient.id}`}>Open circle</Link>
               </div>
             ))}
           </div>
