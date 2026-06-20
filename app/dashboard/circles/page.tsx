@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { DashboardAuthRequired } from "../auth-required";
 import { loadDashboard } from "../data";
 
 export default async function CirclesPage() {
-  const { recipients, recipient } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { recipients, recipient } = data;
 
   return (
     <main className="main app-main">

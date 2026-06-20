@@ -1,8 +1,11 @@
+import { DashboardAuthRequired } from "../auth-required";
 import { createVisit } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 
 export default async function VisitsPage() {
-  const { visits, recipient } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { visits, recipient } = data;
   const careRecipientId = recipient.id;
 
   return (

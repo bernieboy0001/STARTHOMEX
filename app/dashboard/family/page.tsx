@@ -1,3 +1,4 @@
+import { DashboardAuthRequired } from "../auth-required";
 import { createContact } from "../actions";
 import { createInviteLink, revokeInviteLink, revokeMemberAccess } from "../invite-actions";
 import { formatDate, loadDashboard } from "../data";
@@ -5,7 +6,9 @@ import { inviteUrl } from "@/lib/invites";
 
 export default async function FamilyPage({ searchParams }: { searchParams?: Promise<{ invite?: string }> }) {
   const query = await searchParams;
-  const { recipient, contacts, memberships, invites } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { recipient, contacts, memberships, invites } = data;
   const careRecipientId = recipient.id;
   const latestInviteUrl = query?.invite ? inviteUrl(query.invite) : null;
 

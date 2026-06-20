@@ -1,7 +1,10 @@
+import { DashboardAuthRequired } from "../auth-required";
 import { formatDate, loadDashboard } from "../data";
 
 export default async function ActivityPage() {
-  const { activity } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { activity } = data;
 
   return (
     <main className="main app-main">

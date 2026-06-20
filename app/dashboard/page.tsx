@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { CalendarDays, ClipboardList, FileText, FileVideo, HeartPulse, Pill, UsersRound } from "lucide-react";
+import { DashboardAuthRequired } from "./auth-required";
 import { formatDate, loadDashboard } from "./data";
 
 export default async function DashboardPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const query = await searchParams;
-  const { recipient, tasks, medications, visits, reminders, contacts, documents, notes, activity, videos, inviteError, productError, userEmail } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { recipient, tasks, medications, visits, reminders, contacts, documents, notes, activity, videos, inviteError, productError, userEmail } = data;
   const openTasks = tasks.filter(task => !task.completed_at);
 
   return (

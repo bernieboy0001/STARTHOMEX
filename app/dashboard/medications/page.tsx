@@ -1,8 +1,11 @@
+import { DashboardAuthRequired } from "../auth-required";
 import { createMedication } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 
 export default async function MedicationsPage() {
-  const { medications, recipient } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { medications, recipient } = data;
   const careRecipientId = recipient.id;
 
   return (

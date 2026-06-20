@@ -36,14 +36,14 @@ export function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
-export async function loadDashboard(): Promise<DashboardData> {
+export async function loadDashboard(): Promise<DashboardData | null> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    redirect("/sign-in");
+    return null;
   }
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) redirect("/sign-in");
+  if (!userData.user) return null;
 
   const cookieStore = await cookies();
   const selectedRecipientId = cookieStore.get("homex-care-recipient-id")?.value;

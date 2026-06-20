@@ -1,9 +1,12 @@
+import { DashboardAuthRequired } from "../auth-required";
 import { createNote } from "../actions";
 import { VoiceNoteRecorder } from "@/components/voice-note-recorder";
 import { loadDashboard } from "../data";
 
 export default async function NotesPage() {
-  const { notes, recipient } = await loadDashboard();
+  const data = await loadDashboard();
+  if (!data) return <DashboardAuthRequired />;
+  const { notes, recipient } = data;
   const careRecipientId = recipient.id;
 
   return (
