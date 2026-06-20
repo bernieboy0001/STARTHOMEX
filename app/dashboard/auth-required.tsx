@@ -10,11 +10,12 @@ export function DashboardAuthRequired() {
         <div className="rows">
           <div className="row">
             <strong>HOMEX could not see a signed-in session for this page.</strong>
-            <span>Use the sign-in page once, then return to the dashboard. The sidebar will stay here instead of bouncing every click.</span>
+            <span>Sign in again and HOMEX will return here with your browser session saved.</span>
           </div>
           <div className="actions">
             <Link className="button" href="/sign-in">Sign in</Link>
-            <Link className="ghost" href="/">Home</Link>
+            <Link className="ghost" href="/dashboard">Retry</Link>
+            <Link className="ghost" href="/sign-out">Clear session</Link>
           </div>
         </div>
       </section>
