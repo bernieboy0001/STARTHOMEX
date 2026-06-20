@@ -1,11 +1,9 @@
 import { TaskCompletionRow } from "@/components/task-completion-row";
-import { DashboardAuthRequired } from "../auth-required";
 import { createTask } from "../actions";
 import { loadDashboard } from "../data";
 
 export default async function TasksPage() {
   const data = await loadDashboard();
-  if (!data) return <DashboardAuthRequired />;
   const { tasks, recipient } = data;
   const careRecipientId = recipient.id;
 

@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const inviteSchema = z.object({
@@ -22,17 +21,16 @@ const revokeMemberSchema = z.object({
   careRecipientId: z.string().uuid()
 });
 
-async function requireLead(careRecipientId: string, userId: string) {
+async function getCircle(careRecipientId: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
-    .from("care_memberships")
-    .select("organization_id, role")
-    .eq("care_recipient_id", careRecipientId)
-    .eq("user_id", userId)
+    .from("care_recipients")
+    .select("organization_id")
+    .eq("id", careRecipientId)
     .single();
 
-  if (error || !data || !["family_lead", "agency_coordinator"].includes(data.role)) {
-    throw new Error("Only the family lead or agency coordinator can create invite links.");
+  if (error || !data) {
+    throw new Error("Care circle not found.");
   }
 
   return data;
@@ -44,18 +42,17 @@ export async function createInviteLink(formData: FormData) {
     invitedEmail: formData.get("invitedEmail") || "",
     role: formData.get("role") || "family_member"
   });
-  const user = await requireUser();
-  const membership = await requireLead(parsed.careRecipientId, user.id);
+  const circle = await getCircle(parsed.careRecipientId);
   const admin = createAdminClient();
 
   const { data, error } = await admin
     .from("care_circle_invites")
     .insert({
-      organization_id: membership.organization_id,
+      organization_id: circle.organization_id,
       care_recipient_id: parsed.careRecipientId,
       invited_email: parsed.invitedEmail || null,
       role: parsed.role,
-      created_by: user.id
+      created_by: null
     })
     .select("token")
     .single();
@@ -73,8 +70,6 @@ export async function revokeInviteLink(formData: FormData) {
     token: formData.get("token"),
     careRecipientId: formData.get("careRecipientId")
   });
-  const user = await requireUser();
-  await requireLead(parsed.careRecipientId, user.id);
   const admin = createAdminClient();
 
   const { error } = await admin
@@ -93,8 +88,6 @@ export async function revokeMemberAccess(formData: FormData) {
     membershipId: formData.get("membershipId"),
     careRecipientId: formData.get("careRecipientId")
   });
-  const user = await requireUser();
-  await requireLead(parsed.careRecipientId, user.id);
   const admin = createAdminClient();
 
   const { data: membership, error: membershipError } = await admin
@@ -106,10 +99,6 @@ export async function revokeMemberAccess(formData: FormData) {
 
   if (membershipError || !membership) {
     redirect("/dashboard?error=Membership%20not%20found");
-  }
-
-  if (membership.user_id === user.id) {
-    redirect("/dashboard?error=You%20cannot%20remove%20your%20own%20access");
   }
 
   const { error } = await admin

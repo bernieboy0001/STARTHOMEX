@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import type { AuditEvent, CareDocument, CareMembership, CareNote, CareRecipient, CareVideo, Contact, Medication, Reminder, Task, Visit } from "@/lib/types";
 
 export type Invite = {
@@ -36,14 +35,8 @@ export function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
-export async function loadDashboard(): Promise<DashboardData | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return null;
-  }
-
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return null;
+export async function loadDashboard(): Promise<DashboardData> {
+  const supabase = createAdminClient();
 
   const cookieStore = await cookies();
   const selectedRecipientId = cookieStore.get("homex-care-recipient-id")?.value;
@@ -74,7 +67,7 @@ export async function loadDashboard(): Promise<DashboardData | null> {
     supabase.from("documents").select("id, title, category, external_url, notes, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(8)
   ]);
 
-  const admin = createAdminClient();
+  const admin = supabase;
   const [{ data: memberships }, { data: activity }, authUsersResult] = await Promise.all([
     admin.from("care_memberships").select("id, user_id, role, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }),
     admin.from("audit_events").select("id, actor_name, action, entity, summary, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(10),
@@ -122,6 +115,6 @@ export async function loadDashboard(): Promise<DashboardData | null> {
     activity: (activity || []) as AuditEvent[],
     inviteError: invitesResult.error?.message || null,
     productError,
-    userEmail: userData.user.email || null
+    userEmail: null
   };
 }

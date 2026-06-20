@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, BellRing, Building2, CalendarDays, ClipboardList, FileText, HeartPulse, Home, Layers, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
+import { Activity, BellRing, CalendarDays, ClipboardList, FileText, HeartPulse, Home, Layers, Pill, UsersRound, Video, WandSparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const primaryLinks = [
@@ -17,8 +17,7 @@ const secondaryLinks = [
   { href: "/dashboard/notes", label: "Notes", icon: HeartPulse },
   { href: "/dashboard/ai", label: "Extract", icon: WandSparkles },
   { href: "/dashboard/activity", label: "Activity", icon: Activity },
-  { href: "/dashboard/videos", label: "Videos", icon: Video },
-  { href: "/agency", label: "Agency", icon: Building2 }
+  { href: "/dashboard/videos", label: "Videos", icon: Video }
 ];
 
 export const dynamic = "force-dynamic";

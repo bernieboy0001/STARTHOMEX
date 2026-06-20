@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { extractCareText } from "@/lib/care-extraction";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 const extractionSchema = z.object({
   careRecipientId: z.string().uuid(),
@@ -17,10 +16,6 @@ export async function createCareExtraction(formData: FormData) {
     sourceText: formData.get("sourceText")
   });
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) throw new Error("You must be signed in.");
-
   const extracted = extractCareText(parsed.sourceText);
   const admin = createAdminClient();
   const { error: insertError } = await admin.from("care_extractions").insert({
@@ -29,7 +24,7 @@ export async function createCareExtraction(formData: FormData) {
     summary: extracted.summary,
     suggested_tasks: extracted.suggestedTasks,
     red_flags: extracted.redFlags,
-    created_by: data.user.id
+    created_by: null
   });
 
   if (insertError) throw new Error(insertError.message);

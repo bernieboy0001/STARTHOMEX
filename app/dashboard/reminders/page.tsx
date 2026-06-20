@@ -1,11 +1,9 @@
 import { BellRing } from "lucide-react";
-import { DashboardAuthRequired } from "../auth-required";
 import { createReminder } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 
 export default async function RemindersPage() {
   const data = await loadDashboard();
-  if (!data) return <DashboardAuthRequired />;
   const { reminders, recipient } = data;
   const careRecipientId = recipient.id;
 

@@ -1,9 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const taskSchema = z.object({
@@ -79,18 +77,16 @@ const reminderSchema = z.object({
 });
 
 async function currentUser() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) {
-    redirect("/sign-in?error=Session+expired.+Please+sign+in+again.");
-  }
-  const actorName = (data.user.user_metadata?.full_name as string | undefined) || data.user.email || "Care circle member";
-  return { supabase, user: data.user, actorName };
+  return {
+    supabase: createAdminClient(),
+    user: { id: null },
+    actorName: "HOMEX dashboard user"
+  };
 }
 
 async function recordActivity(input: {
   careRecipientId: string;
-  actorId: string;
+  actorId: string | null;
   actorName: string;
   action: string;
   entity: string;
@@ -159,9 +155,7 @@ export async function toggleTaskCompletion(formData: FormData) {
 
   const checked = parsed.completed === "on";
   const name =
-    (user.user_metadata?.full_name as string | undefined) ||
-    user.email ||
-    "Care circle member";
+    "HOMEX dashboard user";
 
   const { error } = await supabase
     .from("tasks")

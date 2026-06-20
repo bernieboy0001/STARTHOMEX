@@ -1,11 +1,9 @@
-import { DashboardAuthRequired } from "../auth-required";
 import { createDocument } from "../actions";
 import { DocumentCameraUpload } from "@/components/document-camera-upload";
 import { loadDashboard } from "../data";
 
 export default async function DocumentsPage() {
   const data = await loadDashboard();
-  if (!data) return <DashboardAuthRequired />;
   const { documents, recipient } = data;
   const careRecipientId = recipient.id;
 

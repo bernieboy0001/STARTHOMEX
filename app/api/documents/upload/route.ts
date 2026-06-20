@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 function cleanName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/-+/g, "-");
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const formData = await request.formData();
   const careRecipientId = String(formData.get("careRecipientId") || "");
   const title = String(formData.get("title") || "");
@@ -35,7 +30,7 @@ export async function POST(request: Request) {
     category,
     storage_path: storagePath,
     notes: "Uploaded from camera or file picker.",
-    uploaded_by: data.user.id
+    uploaded_by: null
   });
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
 

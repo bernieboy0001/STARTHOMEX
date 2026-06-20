@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const onboardingSchema = z.object({
@@ -40,9 +39,6 @@ export async function createCareCircle(formData: FormData) {
   });
 
   try {
-    const supabase = await createClient();
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) redirect("/sign-in");
     const admin = createAdminClient();
 
     const { data: organization, error: orgError } = await admin
@@ -66,21 +62,13 @@ export async function createCareCircle(formData: FormData) {
       .single();
     if (recipientError) throw new Error(recipientError.message);
 
-    const { error: membershipError } = await admin.from("care_memberships").insert({
-      organization_id: organization.id,
-      care_recipient_id: recipient.id,
-      user_id: userData.user.id,
-      role: "family_lead"
-    });
-    if (membershipError) throw new Error(membershipError.message);
-
     const { error: dischargeError } = await admin.from("discharge_plans").insert({
       care_recipient_id: recipient.id,
       diagnosis: parsed.diagnosis || parsed.primaryCondition || "General home care",
       restrictions: listFromText(parsed.restrictions || ""),
       red_flags: listFromText(parsed.redFlags || ""),
       recovery_goals: listFromText(parsed.goals || ""),
-      created_by: userData.user.id
+      created_by: null
     });
     if (dischargeError) throw new Error(dischargeError.message);
   } catch (error) {

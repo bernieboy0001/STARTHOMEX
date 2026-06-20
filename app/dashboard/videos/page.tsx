@@ -1,5 +1,4 @@
 import { VideoUploadForm } from "@/components/video-upload-form";
-import { DashboardAuthRequired } from "../auth-required";
 import { createVideo } from "../actions";
 import { loadDashboard } from "../data";
 import type { CareVideo } from "@/lib/types";
@@ -12,7 +11,6 @@ function videoFrame(video: CareVideo) {
 
 export default async function VideosPage() {
   const data = await loadDashboard();
-  if (!data) return <DashboardAuthRequired />;
   const { videos, recipient } = data;
   const careRecipientId = recipient.id;
 

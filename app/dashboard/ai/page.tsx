@@ -1,12 +1,10 @@
 import { WandSparkles } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { DashboardAuthRequired } from "../auth-required";
 import { createCareExtraction } from "./actions";
 import { loadDashboard } from "../data";
 
 export default async function AiPage() {
   const data = await loadDashboard();
-  if (!data) return <DashboardAuthRequired />;
   const { recipient } = data;
   const careRecipientId = recipient.id;
   const admin = createAdminClient();

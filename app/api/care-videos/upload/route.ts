@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const uploadSchema = z.object({
   careRecipientId: z.string().uuid(),
@@ -32,11 +32,7 @@ export async function POST(request: Request) {
     description: formData.get("description") || undefined
   });
 
-  const supabase = await createClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+  const supabase = createAdminClient();
 
   const extension = file.name.split(".").pop() || "mp4";
   const storagePath = `${parsed.careRecipientId}/${crypto.randomUUID()}.${extension}`;
@@ -56,7 +52,7 @@ export async function POST(request: Request) {
       category: parsed.category,
       description: parsed.description || null,
       storage_path: storagePath,
-      created_by: userData.user.id
+      created_by: null
     })
     .select()
     .single();

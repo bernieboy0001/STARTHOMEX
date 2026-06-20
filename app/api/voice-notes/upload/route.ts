@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const formData = await request.formData();
   const careRecipientId = String(formData.get("careRecipientId") || "");
   const file = formData.get("file");
@@ -28,14 +23,13 @@ export async function POST(request: Request) {
     category: "Voice note",
     storage_path: storagePath,
     notes: "Recorded in HOMEX.",
-    uploaded_by: data.user.id
+    uploaded_by: null
   });
 
-  const authorName = (data.user.user_metadata?.full_name as string | undefined) || data.user.email || "Care circle member";
   const { error: noteError } = await admin.from("care_notes").insert({
     care_recipient_id: careRecipientId,
-    author_id: data.user.id,
-    author_name: authorName,
+    author_id: null,
+    author_name: "HOMEX dashboard user",
     note_type: "voice",
     body: "Voice note uploaded."
   });
