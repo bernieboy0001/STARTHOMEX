@@ -29,6 +29,24 @@ export async function middleware(request: NextRequest) {
 
   // Refresh the auth session and update cookies
   const { data: { session } } = await supabase.auth.getSession();
+  
+  // Session isolation validation
+  if (session?.user) {
+    const selectedCircleId = request.cookies.get("homex-care-recipient-id")?.value;
+    const sessionFingerprint = request.cookies.get("homex-session-fingerprint")?.value;
+    
+    if (selectedCircleId) {
+      // Verify fingerprint matches current user + circle combination
+      const expectedFingerprint = Buffer.from(selectedCircleId + session.user.id).toString("base64");
+      
+      if (sessionFingerprint !== expectedFingerprint) {
+        // Fingerprint mismatch: user trying to use cookie from different browser/device
+        // Clear the contaminated cookie
+        response.cookies.delete("homex-care-recipient-id");
+        response.cookies.delete("homex-session-fingerprint");
+      }
+    }
+  }
 
   return response;
 }
