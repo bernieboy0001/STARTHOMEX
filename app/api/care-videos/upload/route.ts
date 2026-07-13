@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const uploadSchema = z.object({
   careRecipientId: z.string().uuid(),
@@ -32,6 +34,14 @@ export async function POST(request: Request) {
     description: formData.get("description") || undefined
   });
 
+  const auth = await createClient();
+  const { data: authData } = await auth.auth.getUser();
+  const user = authData.user;
+  if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  if (!(await canAccessCircle(parsed.careRecipientId, user.id, user.email))) {
+    return NextResponse.json({ error: "No access to this care circle" }, { status: 403 });
+  }
+
   const supabase = createAdminClient();
 
   const extension = file.name.split(".").pop() || "mp4";
@@ -52,7 +62,7 @@ export async function POST(request: Request) {
       category: parsed.category,
       description: parsed.description || null,
       storage_path: storagePath,
-      created_by: null
+      created_by: user.id
     })
     .select()
     .single();

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { appUrl } from "@/lib/auth";
+import { setSelectedCircle } from "@/lib/circles";
 
 const passwordSchema = z.object({
   token: z.string().min(12),
@@ -42,6 +43,8 @@ async function acceptInviteForUser(token: string, userId: string, email?: string
     .update({ accepted_by: userId, accepted_at: new Date().toISOString() })
     .eq("id", invite.id);
   if (updateError) throw updateError;
+
+  await setSelectedCircle(userId, invite.care_recipient_id);
 }
 
 function fail(token: string, error: unknown) {
