@@ -20,6 +20,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
           <input name="title" placeholder="Call pharmacy about refill" required />
           <input name="ownerName" placeholder="Owner name" required />
           <input name="dueAt" type="datetime-local" />
+          <input name="completed_by_name" placeholder="Completed by" required />
           <select name="priority" defaultValue="medium"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
           <button className="button" type="submit">Create task</button>
         </form></article>
