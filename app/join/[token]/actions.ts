@@ -44,7 +44,7 @@ async function acceptInviteForUser(token: string, userId: string, email?: string
     .eq("id", invite.id);
   if (updateError) throw updateError;
 
-  await setSelectedCircle(userId, invite.care_recipient_id);
+  await setSelectedCircle(invite.care_recipient_id);
 }
 
 function fail(token: string, error: unknown) {

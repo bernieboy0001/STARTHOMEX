@@ -27,8 +27,10 @@ export async function middleware(request: NextRequest) {
     }
   });
 
-  // Refresh the auth session and update cookies
-  const { data: { session } } = await supabase.auth.getSession();
+  // getUser validates the token with Supabase and refreshes auth cookies when
+  // necessary. getSession only reads the local cookie and can leave a stale
+  // session in place during dashboard navigation.
+  await supabase.auth.getUser();
 
   return response;
 }

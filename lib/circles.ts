@@ -33,13 +33,19 @@ export async function canAccessCircle(careRecipientId: string, userId: string, e
   return !!data;
 }
 
-export async function setSelectedCircle(userId: string, careRecipientId: string) {
+export async function setSelectedCircle(careRecipientId: string) {
+  const user = await requireSessionUser();
+
+  if (!(await canAccessCircle(careRecipientId, user.id, user.email))) {
+    throw new Error("User does not have access to this care circle.");
+  }
+
   const cookieStore = await cookies();
-  cookieStore.set(selectedCircleCookieName(userId), careRecipientId, {
+  cookieStore.set(selectedCircleCookieName(user.id), careRecipientId, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 365
+    maxAge: 60 * 60 * 24 * 7
   });
 }
