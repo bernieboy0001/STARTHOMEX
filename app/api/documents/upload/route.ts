@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { retrySupabase } from "@/lib/retry";
 
 function cleanName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/-+/g, "-");
@@ -28,20 +29,20 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const storagePath = `documents/${careRecipientId}/${Date.now()}-${cleanName(file.name)}`;
-  const { error: uploadError } = await admin.storage.from("care-files").upload(storagePath, file, {
+  const { error: uploadError } = await retrySupabase(() => admin.storage.from("care-files").upload(storagePath, file, {
     contentType: file.type || "application/octet-stream",
     upsert: false
-  });
+  }));
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
 
-  const { error: insertError } = await admin.from("documents").insert({
+  const { error: insertError } = await retrySupabase(() => admin.from("documents").insert({
     care_recipient_id: careRecipientId,
     title,
     category,
     storage_path: storagePath,
     notes: "Uploaded from camera or file picker.",
     uploaded_by: user.id
-  });
+  }));
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
 
   return NextResponse.json({ ok: true });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { retrySupabase } from "@/lib/retry";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -21,28 +22,29 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const storagePath = `voice-notes/${careRecipientId}/${Date.now()}-${file.name}`;
-  const { error: uploadError } = await admin.storage.from("care-files").upload(storagePath, file, {
+  const { error: uploadError } = await retrySupabase(() => admin.storage.from("care-files").upload(storagePath, file, {
     contentType: file.type || "audio/webm",
     upsert: false
-  });
+  }));
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
 
-  await admin.from("documents").insert({
+  const { error: documentError } = await retrySupabase(() => admin.from("documents").insert({
     care_recipient_id: careRecipientId,
     title: "Voice note",
     category: "Voice note",
     storage_path: storagePath,
     notes: "Recorded in HOMEX.",
     uploaded_by: user.id
-  });
+  }));
+  if (documentError) return NextResponse.json({ error: documentError.message }, { status: 500 });
 
-  const { error: noteError } = await admin.from("care_notes").insert({
+  const { error: noteError } = await retrySupabase(() => admin.from("care_notes").insert({
     care_recipient_id: careRecipientId,
     author_id: user.id,
     author_name: user.email || "HOMEX dashboard user",
     note_type: "voice",
     body: "Voice note uploaded."
-  });
+  }));
 
   if (noteError) return NextResponse.json({ error: noteError.message }, { status: 500 });
   return NextResponse.json({ ok: true });

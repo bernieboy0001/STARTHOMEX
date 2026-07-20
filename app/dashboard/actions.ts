@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { canAccessCircle, requireSessionUser } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { retrySupabase } from "@/lib/retry";
 
 const taskSchema = z.object({
   careRecipientId: z.string().uuid(),
@@ -166,14 +167,14 @@ export async function createTask(formData: FormData) {
 
     const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
     await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/tasks");
-    const { data, error } = await supabase.from("tasks").insert({
+    const { data, error } = await retrySupabase(() => supabase.from("tasks").insert({
       care_recipient_id: parsed.careRecipientId,
       title: parsed.title,
       owner_name: parsed.ownerName,
       priority: parsed.priority,
       due_at: parsed.dueAt || null,
       created_by: user.id
-    }).select("id").single();
+    }).select("id").single());
 
     if (error) failSave("/dashboard/tasks", error);
     await recordActivity({
@@ -207,7 +208,7 @@ export async function toggleTaskCompletion(formData: FormData) {
     user.email ||
     "Care circle member";
 
-  const { error } = await supabase
+  const { error } = await retrySupabase(() => supabase
     .from("tasks")
     .update({
       completed_at: checked ? new Date().toISOString() : null,
@@ -215,7 +216,7 @@ export async function toggleTaskCompletion(formData: FormData) {
       completed_by_name: checked ? name : null
     })
     .eq("id", parsed.taskId)
-    .eq("care_recipient_id", parsed.careRecipientId);
+    .eq("care_recipient_id", parsed.careRecipientId));
 
   if (error) failSave("/dashboard/tasks", error);
   await recordActivity({
@@ -307,7 +308,7 @@ export async function createMedication(formData: FormData) {
     });
     const { supabase, user, actorName } = await currentUser("/dashboard/medications");
     await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/medications");
-    const { data, error } = await supabase.from("medications").insert({
+    const { data, error } = await retrySupabase(() => supabase.from("medications").insert({
       care_recipient_id: parsed.careRecipientId,
       name: parsed.name,
       dosage: parsed.dosage || null,
@@ -315,7 +316,7 @@ export async function createMedication(formData: FormData) {
       instructions: parsed.instructions || null,
       prescribed_by: parsed.prescribedBy || null,
       refill_due_at: parsed.refillDueAt || null
-    }).select("id").single();
+    }).select("id").single());
     if (error) failSave("/dashboard/medications", error);
     await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "medication", entityId: data?.id, summary: `Added medication: ${parsed.name}.` });
     revalidatePath("/dashboard");

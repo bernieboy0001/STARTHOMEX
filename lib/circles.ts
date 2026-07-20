@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isSuperAdminEmail } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { retrySupabase } from "@/lib/retry";
 
 export function selectedCircleCookieName(userId: string) {
   return `homex-care-recipient-id-${userId}`;
@@ -10,7 +11,7 @@ export function selectedCircleCookieName(userId: string) {
 
 export async function requireSessionUser() {
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
+  const { data, error } = await retrySupabase(() => supabase.auth.getUser());
 
   if (error || !data.user) {
     redirect("/sign-in?error=Your%20session%20has%20expired.%20Please%20sign%20in%20again.");

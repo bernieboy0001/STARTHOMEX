@@ -3,6 +3,7 @@ import { z } from "zod";
 import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { retrySupabase } from "@/lib/retry";
 
 const uploadSchema = z.object({
   careRecipientId: z.string().uuid(),
@@ -46,15 +47,15 @@ export async function POST(request: Request) {
 
   const extension = file.name.split(".").pop() || "mp4";
   const storagePath = `${parsed.careRecipientId}/${crypto.randomUUID()}.${extension}`;
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await retrySupabase(() => supabase.storage
     .from("care-files")
-    .upload(storagePath, file, { contentType: file.type, upsert: false });
+    .upload(storagePath, file, { contentType: file.type, upsert: false }));
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await retrySupabase(() => supabase
     .from("caregiver_videos")
     .insert({
       care_recipient_id: parsed.careRecipientId,
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       created_by: user.id
     })
     .select()
-    .single();
+    .single());
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
