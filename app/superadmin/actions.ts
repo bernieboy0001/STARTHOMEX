@@ -44,7 +44,9 @@ export async function deleteAuthUser(formData: FormData) {
   const { error: membershipError } = await admin.from("care_memberships").delete().eq("user_id", id);
   if (membershipError) redirect(`/superadmin?error=${encodeURIComponent(membershipError.message)}`);
 
-  const { error } = await admin.auth.admin.deleteUser(id);
+  // Care records can reference a user, so use Supabase's soft deletion rather
+  // than breaking the care history with a hard auth-row deletion.
+  const { error } = await admin.auth.admin.deleteUser(id, true);
 
   if (error) redirect(`/superadmin?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/superadmin");

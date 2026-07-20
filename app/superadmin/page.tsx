@@ -37,7 +37,7 @@ async function loadAdminData() {
 const statusMessage = {
   "access-revoked": "Care-circle access revoked.",
   "invite-revoked": "Invite link revoked.",
-  "user-deleted": "User deleted and their care-circle access removed."
+  "user-deleted": "User deactivated and their care-circle access removed."
 } as const;
 
 export default async function SuperAdminPage({ searchParams }: { searchParams?: Promise<{ error?: string; status?: keyof typeof statusMessage }> }) {
@@ -84,7 +84,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
                 </span>
                 <form action={deleteAuthUser}>
                   <input type="hidden" name="id" value={account.id} />
-                  <button className="ghost danger" type="submit">Delete user</button>
+                  <button className="ghost danger" type="submit">Deactivate user</button>
                 </form>
               </div>
             ))}
