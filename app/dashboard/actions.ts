@@ -127,32 +127,31 @@ async function recordActivity(input: {
   entityId?: string | null;
   summary: string;
 }) {
-  let admin;
   try {
-    admin = createAdminClient();
+    const admin = createAdminClient();
+    const { data: recipient } = await retrySupabase(() => admin
+      .from("care_recipients")
+      .select("organization_id")
+      .eq("id", input.careRecipientId)
+      .single());
+
+    const { error } = await retrySupabase(() => admin.from("audit_events").insert({
+      organization_id: recipient?.organization_id || null,
+      care_recipient_id: input.careRecipientId,
+      actor_id: input.actorId,
+      actor_name: input.actorName,
+      action: input.action,
+      entity: input.entity,
+      entity_id: input.entityId || null,
+      summary: input.summary
+    }));
+
+    if (error) console.error("Activity save failed", error);
   } catch (error) {
-    console.error("Activity database client error", error);
-    return;
+    // Activity history is supplementary. Never turn a successful care update
+    // into a failed task, medication, or note because audit logging is down.
+    console.error("Activity save failed", error);
   }
-
-  const { data: recipient } = await admin
-    .from("care_recipients")
-    .select("organization_id")
-    .eq("id", input.careRecipientId)
-    .single();
-
-  const { error } = await admin.from("audit_events").insert({
-    organization_id: recipient?.organization_id || null,
-    care_recipient_id: input.careRecipientId,
-    actor_id: input.actorId,
-    actor_name: input.actorName,
-    action: input.action,
-    entity: input.entity,
-    entity_id: input.entityId || null,
-    summary: input.summary
-  });
-
-  if (error) console.error("Activity save failed", error);
 }
 
 export async function createTask(formData: FormData) {

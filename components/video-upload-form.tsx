@@ -17,19 +17,23 @@ export function VideoUploadForm({ careRecipientId, disabled }: { careRecipientId
         setMessage("");
 
         startTransition(async () => {
-          const response = await fetch("/api/care-videos/upload", {
-            method: "POST",
-            body: formData
-          });
-          const payload = await response.json();
+          try {
+            const response = await fetch("/api/care-videos/upload", {
+              method: "POST",
+              body: formData
+            });
+            const payload = await response.json().catch(() => ({}));
 
-          if (!response.ok) {
-            setMessage(payload.error || "Upload failed.");
-            return;
+            if (!response.ok) {
+              setMessage(payload.error || "Video upload could not finish. Please try again.");
+              return;
+            }
+
+            setMessage("Video uploaded. Refreshing...");
+            window.location.reload();
+          } catch {
+            setMessage("Video upload could not reach the server. Please try again.");
           }
-
-          setMessage("Video uploaded. Refreshing...");
-          window.location.reload();
         });
       }}
     >
