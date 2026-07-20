@@ -39,7 +39,13 @@ function relatedName(value: unknown, key: "full_name" | "name") {
   return item && typeof item === "object" && key in item ? String(item[key as keyof typeof item]) : "Unknown";
 }
 
-export default async function SuperAdminPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
+const statusMessage = {
+  "access-revoked": "Care-circle access revoked.",
+  "invite-revoked": "Invite link revoked.",
+  "user-deleted": "User deleted and their care-circle access removed."
+} as const;
+
+export default async function SuperAdminPage({ searchParams }: { searchParams?: Promise<{ error?: string; status?: keyof typeof statusMessage }> }) {
   const query = await searchParams;
   const user = await requireSuperAdmin();
   const { users, memberships, invites, recipients, error } = await loadAdminData();
@@ -70,6 +76,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
         </header>
 
         {(query?.error || error) && <p className="notice"><strong>Admin error</strong><span>{query?.error || error}</span></p>}
+        {query?.status && statusMessage[query.status] && <p className="notice success-notice"><strong>Updated</strong><span>{statusMessage[query.status]}</span></p>}
 
         <section className="panel" id="users">
           <div className="panel-head"><h3>Users</h3></div>

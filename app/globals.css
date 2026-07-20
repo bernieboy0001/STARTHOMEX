@@ -577,6 +577,16 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+.success-notice {
+  color: #174b37;
+  border-color: rgba(13, 107, 87, 0.24);
+  background: var(--green-soft);
+}
+
+:root[data-theme="dark"] .success-notice {
+  color: #d9fff0;
+}
+
 .invite-link-copy {
   display: flex;
   gap: 8px;
