@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { isSuperAdminEmail } from "@/lib/auth";
+import { requireSessionUser, selectedCircleCookieName } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AuditEvent, CareDocument, CareMembership, CareNote, CareRecipient, CareVideo, Contact, Medication, Reminder, Task, Visit } from "@/lib/types";
 
@@ -36,12 +38,28 @@ export function formatDate(value: string | null) {
 }
 
 export async function loadDashboard(): Promise<DashboardData> {
+  const user = await requireSessionUser();
   const supabase = createAdminClient();
+  const isSuperAdmin = isSuperAdminEmail(user.email);
 
   const cookieStore = await cookies();
-  const selectedRecipientId = cookieStore.get("homex-care-recipient-id")?.value;
-  const { data: recipientsData } = await supabase.from("care_recipients").select("*").order("created_at", { ascending: false });
-  const recipients = (recipientsData || []) as CareRecipient[];
+  const selectedRecipientId = cookieStore.get(selectedCircleCookieName(user.id))?.value;
+
+  let recipients: CareRecipient[] = [];
+  if (isSuperAdmin) {
+    const { data } = await supabase.from("care_recipients").select("*").order("created_at", { ascending: false });
+    recipients = (data || []) as CareRecipient[];
+  } else {
+    const { data } = await supabase
+      .from("care_memberships")
+      .select("care_recipients(*)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    recipients = (data || [])
+      .map(row => Array.isArray(row.care_recipients) ? row.care_recipients[0] : row.care_recipients)
+      .filter(Boolean) as CareRecipient[];
+  }
   const recipient = recipients.find(item => item.id === selectedRecipientId) || recipients[0];
   if (!recipient) redirect("/onboarding");
 
@@ -115,6 +133,6 @@ export async function loadDashboard(): Promise<DashboardData> {
     activity: (activity || []) as AuditEvent[],
     inviteError: invitesResult.error?.message || null,
     productError,
-    userEmail: null
+    userEmail: user.email || null
   };
 }

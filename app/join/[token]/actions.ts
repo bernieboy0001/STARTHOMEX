@@ -81,7 +81,7 @@ async function acceptInviteForUser(token: string, userId: string, email?: string
   if (updateError) throw updateError;
 
   // Set the selected circle with full validation
-  await setSelectedCircle(invite.care_recipient_id, userId);
+  await setSelectedCircle(invite.care_recipient_id);
 }
 
 function fail(token: string, error: unknown) {

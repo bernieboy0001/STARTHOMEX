@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -7,6 +9,14 @@ export async function POST(request: Request) {
   const file = formData.get("file");
   if (!careRecipientId || !(file instanceof File)) {
     return NextResponse.json({ error: "Missing voice note" }, { status: 400 });
+  }
+
+  const auth = await createClient();
+  const { data } = await auth.auth.getUser();
+  const user = data.user;
+  if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  if (!(await canAccessCircle(careRecipientId, user.id, user.email))) {
+    return NextResponse.json({ error: "No access to this care circle" }, { status: 403 });
   }
 
   const admin = createAdminClient();
@@ -23,13 +33,13 @@ export async function POST(request: Request) {
     category: "Voice note",
     storage_path: storagePath,
     notes: "Recorded in HOMEX.",
-    uploaded_by: null
+    uploaded_by: user.id
   });
 
   const { error: noteError } = await admin.from("care_notes").insert({
     care_recipient_id: careRecipientId,
-    author_id: null,
-    author_name: "HOMEX dashboard user",
+    author_id: user.id,
+    author_name: user.email || "HOMEX dashboard user",
     note_type: "voice",
     body: "Voice note uploaded."
   });

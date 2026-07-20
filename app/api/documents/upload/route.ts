@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 function cleanName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/-+/g, "-");
@@ -16,6 +18,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing upload fields" }, { status: 400 });
   }
 
+  const auth = await createClient();
+  const { data } = await auth.auth.getUser();
+  const user = data.user;
+  if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  if (!(await canAccessCircle(careRecipientId, user.id, user.email))) {
+    return NextResponse.json({ error: "No access to this care circle" }, { status: 403 });
+  }
+
   const admin = createAdminClient();
   const storagePath = `documents/${careRecipientId}/${Date.now()}-${cleanName(file.name)}`;
   const { error: uploadError } = await admin.storage.from("care-files").upload(storagePath, file, {
@@ -30,7 +40,7 @@ export async function POST(request: Request) {
     category,
     storage_path: storagePath,
     notes: "Uploaded from camera or file picker.",
-    uploaded_by: null
+    uploaded_by: user.id
   });
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
 

@@ -26,15 +26,5 @@ export async function createClient() {
     }
   );
 
-  // Set the selected care recipient in session for RLS policies
-  const selectedCircleId = cookieStore.get("homex-care-recipient-id")?.value;
-  if (selectedCircleId) {
-    try {
-      await client.rpc("set_selected_care_recipient", { recipient_id: selectedCircleId });
-    } catch (e) {
-      console.error("Failed to set selected care recipient in session", e);
-    }
-  }
-
   return client;
 }
