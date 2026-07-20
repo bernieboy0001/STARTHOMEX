@@ -10,17 +10,17 @@ async function loadAdminData() {
     admin.auth.admin.listUsers({ page: 1, perPage: 100 }),
     admin
       .from("care_memberships")
-      .select("id, user_id, role, created_at, care_recipients(full_name), organizations(name)")
+      .select("id, user_id, role, created_at, care_recipient_id, organization_id")
       .order("created_at", { ascending: false })
       .limit(100),
     admin
       .from("care_circle_invites")
-      .select("id, token, invited_email, role, accepted_at, revoked_at, expires_at, created_at, care_recipients(full_name), organizations(name)")
+      .select("id, token, invited_email, role, accepted_at, revoked_at, expires_at, created_at, care_recipient_id, organization_id")
       .order("created_at", { ascending: false })
       .limit(100),
     admin
       .from("care_recipients")
-      .select("id, full_name, recovery_status, created_at, organizations(name)")
+      .select("id, full_name, recovery_status, created_at, organization_id")
       .order("created_at", { ascending: false })
       .limit(100)
   ]);
@@ -32,11 +32,6 @@ async function loadAdminData() {
     recipients: recipientsResult.data || [],
     error: usersResult.error?.message || membershipsResult.error?.message || invitesResult.error?.message || recipientsResult.error?.message || null
   };
-}
-
-function relatedName(value: unknown, key: "full_name" | "name") {
-  const item = Array.isArray(value) ? value[0] : value;
-  return item && typeof item === "object" && key in item ? String(item[key as keyof typeof item]) : "Unknown";
 }
 
 const statusMessage = {
@@ -102,8 +97,8 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
             {memberships.map(membership => (
               <div className="row split-row" key={membership.id}>
                 <span>
-                  <strong>{membership.role} / {relatedName(membership.care_recipients, "full_name")}</strong>
-                  <span>{relatedName(membership.organizations, "name")} / {membership.user_id}</span>
+                  <strong>{membership.role.replace("_", " ")} / Circle {membership.care_recipient_id}</strong>
+                  <span>Organization {membership.organization_id} / User {membership.user_id}</span>
                 </span>
                 <form action={revokeMembership}>
                   <input type="hidden" name="id" value={membership.id} />
@@ -121,7 +116,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
               <div className="row split-row" key={invite.id}>
                 <span>
                   <strong>{invite.invited_email || "Open invite"} / {invite.role}</strong>
-                  <span>{relatedName(invite.care_recipients, "full_name")} / {invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : "Active"}</span>
+                  <span>Circle {invite.care_recipient_id} / {invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : "Active"}</span>
                 </span>
                 <form action={revokeInvite}>
                   <input type="hidden" name="id" value={invite.id} />
@@ -139,7 +134,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
               <div className="row split-row" key={recipient.id}>
                 <span>
                   <strong>{recipient.full_name}</strong>
-                  <span>{relatedName(recipient.organizations, "name")} / {recipient.recovery_status || "No status"}</span>
+                  <span>Organization {recipient.organization_id} / {recipient.recovery_status || "No status"}</span>
                 </span>
                 <Link className="ghost" href={`/dashboard/select-circle/${recipient.id}`}>Open circle</Link>
               </div>
