@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!parsed.success) {
-    return NextResponse.redirect(new URL("/sign-in?error=Enter%20a%20valid%20email.", request.url));
+    return NextResponse.redirect(new URL("/sign-in?error=Enter%20a%20valid%20email.", request.url), 303);
   }
 
   const cookiesToSet: CookieToSet[] = [];
@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(error.message)}`, request.url));
+    return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(error.message)}`, request.url), 303);
   }
 
-  const response = NextResponse.redirect(new URL("/sign-in?sent=1", request.url));
+  const response = NextResponse.redirect(new URL("/sign-in?sent=1", request.url), 303);
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, { ...options, path: "/" });
   });

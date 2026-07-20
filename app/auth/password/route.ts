@@ -32,7 +32,7 @@ function authClient(request: NextRequest, cookiesToSet: CookieToSet[]) {
 }
 
 function redirectWithCookies(request: NextRequest, path: string, cookiesToSet: CookieToSet[]) {
-  const response = NextResponse.redirect(new URL(path, request.url));
+  const response = NextResponse.redirect(new URL(path, request.url), 303);
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, { ...options, path: "/" });
   });
@@ -40,7 +40,7 @@ function redirectWithCookies(request: NextRequest, path: string, cookiesToSet: C
 }
 
 function authError(request: NextRequest, message: string) {
-  return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(message)}`, request.url));
+  return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(message)}`, request.url), 303);
 }
 
 /**
