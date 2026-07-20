@@ -34,7 +34,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.redirect(new URL(next, url.origin));
+  const destination = new URL(next, url.origin);
+  if (next.startsWith("/join/")) {
+    destination.searchParams.set("confirmed", "1");
+  }
+
+  const response = NextResponse.redirect(destination, 303);
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, { ...options, path: "/" });
   });

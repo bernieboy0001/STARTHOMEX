@@ -3,6 +3,7 @@ import { createInviteLink, revokeInviteLink, revokeMemberAccess } from "../invit
 import { formatDate, loadDashboard } from "../data";
 import { inviteUrl } from "@/lib/invites";
 import { SaveStatusNotice } from "@/components/save-status-notice";
+import { InviteLinkCopy } from "@/components/invite-link-copy";
 
 export default async function FamilyPage({ searchParams }: { searchParams?: Promise<{ invite?: string; save?: "database-not-connected" | "error" | "saved" }> }) {
   const query = await searchParams;
@@ -18,7 +19,7 @@ export default async function FamilyPage({ searchParams }: { searchParams?: Prom
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Create invite link</h3></div>
           <form className="form" action={createInviteLink}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="invitedEmail" type="email" placeholder="Optional: family@example.com" /><select name="role" defaultValue="family_member"><option value="family_member">Family member</option><option value="home_aide">Home aide</option><option value="agency_coordinator">Agency coordinator</option><option value="clinician">Clinician</option></select><button className="button" type="submit">Generate invite link</button></form>
-          {latestInviteUrl && <div className="row copy-row"><strong>Share this link</strong><span>{latestInviteUrl}</span></div>}
+          {latestInviteUrl && <div className="row copy-row"><strong>Share this link</strong><InviteLinkCopy url={latestInviteUrl} /></div>}
         </article>
         <article className="panel"><div className="panel-head"><h3>Members and invites</h3></div><div className="rows">
           {memberships.map(member => (

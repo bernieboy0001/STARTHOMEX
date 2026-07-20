@@ -203,7 +203,9 @@ export async function toggleTaskCompletion(formData: FormData) {
 
   const checked = parsed.completed === "on";
   const name =
-    "HOMEX dashboard user";
+    (typeof user.user_metadata.full_name === "string" && user.user_metadata.full_name.trim()) ||
+    user.email ||
+    "Care circle member";
 
   const { error } = await supabase
     .from("tasks")

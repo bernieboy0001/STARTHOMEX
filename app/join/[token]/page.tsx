@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { acceptCurrentSessionInvite, emailInviteMagicLink, signInAndAcceptInvite, signUpAndAcceptInvite } from "./actions";
+import { AcceptConfirmedInvite } from "@/components/accept-confirmed-invite";
 
 async function loadInvite(token: string) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
@@ -20,7 +21,7 @@ export default async function JoinPage({
   searchParams
 }: {
   params: Promise<{ token: string }>;
-  searchParams?: Promise<{ error?: string; sent?: string }>;
+  searchParams?: Promise<{ confirmed?: string; error?: string; sent?: string }>;
 }) {
   const { token } = await params;
   const query = await searchParams;
@@ -46,7 +47,8 @@ export default async function JoinPage({
           {invite.accepted_at && <p className="notice"><strong>Invite already used</strong><span>Sign in with the account that accepted it.</span></p>}
           {query?.error && <p className="notice"><strong>Invite error</strong><span>{query.error}</span></p>}
           {query?.sent === "1" && <p className="row">Check your email for the magic link, then return here to finish joining.</p>}
-          {data.user && !invite.accepted_at && !invite.revoked_at && (
+          {data.user && query?.confirmed === "1" && !invite.accepted_at && !invite.revoked_at && <AcceptConfirmedInvite token={token} />}
+          {data.user && query?.confirmed !== "1" && !invite.accepted_at && !invite.revoked_at && (
             <form className="form" action={acceptCurrentSessionInvite}>
               <input type="hidden" name="token" value={token} />
               <button className="button" type="submit">Accept invite as {data.user.email}</button>
