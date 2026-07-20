@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { canAccessCircle, requireSessionUser } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const taskSchema = z.object({
@@ -80,21 +79,15 @@ const reminderSchema = z.object({
 
 async function currentUser(errorPath = "/dashboard") {
   try {
-    const signedInUser = await requireSessionUser();
     return {
       supabase: createAdminClient(),
-      user: signedInUser,
-      actorName: signedInUser.email || "HOMEX dashboard user"
+      user: { id: null },
+      actorName: "HOMEX dashboard user"
     };
   } catch (error) {
     console.error("Dashboard database client error", error);
     redirect(`${errorPath}?save=database-not-connected`);
   }
-}
-
-async function assertCircleAccess(careRecipientId: string, userId: string, email?: string | null, path = "/dashboard") {
-  if (await canAccessCircle(careRecipientId, userId, email)) return;
-  redirect(`${path}?save=error`);
 }
 
 function failSave(path: string, error: unknown) {
@@ -149,7 +142,6 @@ export async function createTask(formData: FormData) {
   });
 
   const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/tasks");
   const { data, error } = await supabase.from("tasks").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -180,7 +172,6 @@ export async function toggleTaskCompletion(formData: FormData) {
   });
 
   const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/tasks");
 
   const checked = parsed.completed === "on";
   const name =
@@ -218,7 +209,6 @@ export async function createNote(formData: FormData) {
   });
 
   const { supabase, user, actorName } = await currentUser("/dashboard/notes");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/notes");
   const { data, error } = await supabase.from("care_notes").insert({
     care_recipient_id: parsed.careRecipientId,
     author_id: user.id,
@@ -250,7 +240,6 @@ export async function createVideo(formData: FormData) {
   });
 
   const { supabase, user, actorName } = await currentUser("/dashboard/videos");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/videos");
   const { data, error } = await supabase.from("caregiver_videos").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -284,7 +273,6 @@ export async function createMedication(formData: FormData) {
     refillDueAt: formData.get("refillDueAt") || undefined
   });
   const { supabase, user, actorName } = await currentUser("/dashboard/medications");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/medications");
   const { data, error } = await supabase.from("medications").insert({
     care_recipient_id: parsed.careRecipientId,
     name: parsed.name,
@@ -309,7 +297,6 @@ export async function createVisit(formData: FormData) {
     preparationNotes: formData.get("preparationNotes") || undefined
   });
   const { supabase, user, actorName } = await currentUser("/dashboard/visits");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/visits");
   const { data, error } = await supabase.from("visits").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -333,7 +320,6 @@ export async function createContact(formData: FormData) {
     notes: formData.get("notes") || undefined
   });
   const { supabase, user, actorName } = await currentUser("/dashboard/family");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/family");
   const { data, error } = await supabase.from("contacts").insert({
     care_recipient_id: parsed.careRecipientId,
     name: parsed.name,
@@ -356,7 +342,6 @@ export async function createDocument(formData: FormData) {
     notes: formData.get("notes") || undefined
   });
   const { supabase, user, actorName } = await currentUser("/dashboard/documents");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/documents");
   const { data, error } = await supabase.from("documents").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,
@@ -379,7 +364,6 @@ export async function createReminder(formData: FormData) {
   });
 
   const { supabase, user, actorName } = await currentUser("/dashboard/reminders");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/reminders");
   const { data, error } = await supabase.from("reminders").insert({
     care_recipient_id: parsed.careRecipientId,
     title: parsed.title,

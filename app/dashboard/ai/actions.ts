@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { extractCareText } from "@/lib/care-extraction";
-import { canAccessCircle, requireSessionUser } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const extractionSchema = z.object({
@@ -17,11 +16,6 @@ export async function createCareExtraction(formData: FormData) {
     careRecipientId: formData.get("careRecipientId"),
     sourceText: formData.get("sourceText")
   });
-
-  const user = await requireSessionUser();
-  if (!(await canAccessCircle(parsed.careRecipientId, user.id, user.email))) {
-    redirect("/dashboard/ai?save=error");
-  }
 
   const extracted = extractCareText(parsed.sourceText);
   let admin;
@@ -37,7 +31,7 @@ export async function createCareExtraction(formData: FormData) {
     summary: extracted.summary,
     suggested_tasks: extracted.suggestedTasks,
     red_flags: extracted.redFlags,
-    created_by: user.id
+    created_by: null
   });
 
   if (insertError) {

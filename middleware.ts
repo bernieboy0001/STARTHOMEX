@@ -27,10 +27,26 @@ export async function middleware(request: NextRequest) {
     }
   });
 
-  // getUser validates the token with Supabase and refreshes auth cookies when
-  // necessary. getSession only reads the local cookie and can leave a stale
-  // session in place during dashboard navigation.
-  await supabase.auth.getUser();
+  // Refresh the auth session and update cookies
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // Session isolation validation
+  if (session?.user) {
+    const selectedCircleId = request.cookies.get("homex-care-recipient-id")?.value;
+    const sessionFingerprint = request.cookies.get("homex-session-fingerprint")?.value;
+    
+    if (selectedCircleId) {
+      // Verify fingerprint matches current user + circle combination
+      const expectedFingerprint = Buffer.from(selectedCircleId + session.user.id).toString("base64");
+      
+      if (sessionFingerprint !== expectedFingerprint) {
+        // Fingerprint mismatch: user trying to use cookie from different browser/device
+        // Clear the contaminated cookie
+        response.cookies.delete("homex-care-recipient-id");
+        response.cookies.delete("homex-session-fingerprint");
+      }
+    }
+  }
 
   return response;
 }

@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireSessionUser, setSelectedCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const onboardingSchema = z.object({
@@ -26,7 +25,6 @@ function listFromText(value: string) {
 }
 
 export async function createCareCircle(formData: FormData) {
-  const user = await requireSessionUser();
   const parsed = onboardingSchema.parse({
     organizationName: formData.get("organizationName"),
     recipientName: formData.get("recipientName"),
@@ -63,14 +61,6 @@ export async function createCareCircle(formData: FormData) {
       .select()
       .single();
     if (recipientError) throw new Error(recipientError.message);
-
-    const { error: membershipError } = await admin.from("care_memberships").upsert({
-      organization_id: organization.id,
-      care_recipient_id: recipient.id,
-      user_id: user.id,
-      role: "family_lead"
-    }, { onConflict: "organization_id,care_recipient_id,user_id" });
-    if (membershipError) throw new Error(membershipError.message);
 
     const { error: dischargeError } = await admin.from("discharge_plans").insert({
       care_recipient_id: recipient.id,

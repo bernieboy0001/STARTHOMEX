@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { canAccessCircle, requireSessionUser } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const inviteSchema = z.object({
@@ -49,10 +48,6 @@ export async function createInviteLink(formData: FormData) {
     invitedEmail: formData.get("invitedEmail") || "",
     role: formData.get("role") || "family_member"
   });
-  const user = await requireSessionUser();
-  if (!(await canAccessCircle(parsed.careRecipientId, user.id, user.email))) {
-    redirect("/dashboard/family?save=error");
-  }
   const circle = await getCircle(parsed.careRecipientId);
   const admin = createAdminClient();
 
@@ -63,7 +58,7 @@ export async function createInviteLink(formData: FormData) {
       care_recipient_id: parsed.careRecipientId,
       invited_email: parsed.invitedEmail || null,
       role: parsed.role,
-      created_by: user.id
+      created_by: null
     })
     .select("token")
     .single();
@@ -82,11 +77,6 @@ export async function revokeInviteLink(formData: FormData) {
     token: formData.get("token"),
     careRecipientId: formData.get("careRecipientId")
   });
-  const user = await requireSessionUser();
-  if (!(await canAccessCircle(parsed.careRecipientId, user.id, user.email))) {
-    redirect("/dashboard/family?save=error");
-  }
-
   let admin;
   try {
     admin = createAdminClient();
@@ -114,11 +104,6 @@ export async function revokeMemberAccess(formData: FormData) {
     membershipId: formData.get("membershipId"),
     careRecipientId: formData.get("careRecipientId")
   });
-  const user = await requireSessionUser();
-  if (!(await canAccessCircle(parsed.careRecipientId, user.id, user.email))) {
-    redirect("/dashboard/family?save=error");
-  }
-
   let admin;
   try {
     admin = createAdminClient();

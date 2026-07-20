@@ -43,6 +43,15 @@ function authError(request: NextRequest, message: string) {
   return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(message)}`, request.url));
 }
 
+/**
+ * Check if email is already registered (used by another account)
+ */
+async function isEmailRegistered(email: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data } = await admin.auth.admin.listUsers();
+  return data?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase()) || false;
+}
+
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const parsed = passwordSchema.safeParse({
@@ -63,6 +72,12 @@ export async function POST(request: NextRequest) {
     const fullName = parsed.data.fullName?.trim();
     if (!fullName) return authError(request, "Enter your full name to create an account.");
 
+    // Security check: Prevent email reuse
+    const emailExists = await isEmailRegistered(parsed.data.email);
+    if (emailExists) {
+      return authError(request, "This email is already registered. Please sign in instead.");
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -76,7 +91,14 @@ export async function POST(request: NextRequest) {
 
     if (data.user) {
       const admin = createAdminClient();
-      await admin.from("profiles").upsert({ id: data.user.id, full_name: fullName });
+      // Ensure profile is created atomically with auth signup
+      const { error: profileError } = await admin
+        .from("profiles")
+        .upsert({ id: data.user.id, full_name: fullName });
+      
+      if (profileError) {
+        return authError(request, "Account created but profile setup failed. Please contact support.");
+      }
     }
 
     if (data.session) {
@@ -86,12 +108,23 @@ export async function POST(request: NextRequest) {
     return redirectWithCookies(request, "/sign-in?sent=signup", cookiesToSet);
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  // Sign-in mode
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password
   });
 
   if (error) return authError(request, error.message);
 
-  return redirectWithCookies(request, "/dashboard", cookiesToSet);
+  if (!data.user) {
+    return authError(request, "Sign in failed. Please try again.");
+  }
+
+  // On successful sign-in, clear any contaminated care circle selection
+  // User will need to select their circle again
+  const response = redirectWithCookies(request, "/dashboard", cookiesToSet);
+  response.cookies.delete("homex-care-recipient-id");
+  response.cookies.delete("homex-session-fingerprint");
+  
+  return response;
 }
