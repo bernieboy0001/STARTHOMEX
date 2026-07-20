@@ -36,7 +36,7 @@ export async function signUpWithPassword(formData: FormData) {
       password: parsed.password,
       options: {
         data: { full_name: parsed.fullName },
-        emailRedirectTo: `${appUrl()}/auth/callback?next=/onboarding`
+        emailRedirectTo: `${appUrl()}/auth/callback?next=/sign-in%3Fconfirmed%3D1`
       }
     });
 

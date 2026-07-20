@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       password: parsed.data.password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${appUrl()}/auth/callback?next=/onboarding`
+        emailRedirectTo: `${appUrl()}/auth/callback?next=/sign-in%3Fconfirmed%3D1`
       }
     });
 

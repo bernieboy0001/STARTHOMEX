@@ -16,7 +16,7 @@ export function SaveStatusNotice({ status }: { status?: SaveStatus }) {
     return (
       <p className="notice">
         <strong>Save failed</strong>
-        <span>Run the dashboard saving SQL upgrade in Supabase, then try again.</span>
+        <span>We could not save that just now. Nothing was changed. Please try again.</span>
       </p>
     );
   }

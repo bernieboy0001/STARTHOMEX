@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
     });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
+      if (next === "/sign-in?confirmed=1") {
+        return NextResponse.redirect(new URL("/sign-in?confirmation=1", url.origin), 303);
+      }
       return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(error.message)}`, url.origin));
     }
   }

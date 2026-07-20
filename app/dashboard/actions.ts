@@ -97,9 +97,24 @@ async function assertCircleAccess(careRecipientId: string, userId: string, email
   redirect(`${path}?save=error`);
 }
 
-function failSave(path: string, error: unknown) {
+function failSave(path: string, error: unknown): never {
   console.error("Dashboard save failed", error);
   redirect(`${path}?save=error`);
+}
+
+function handleUnexpectedSaveFailure(path: string, error: unknown): never {
+  // Next.js uses thrown navigation errors for redirect(). Keep those intact.
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    typeof error.digest === "string" &&
+    error.digest.startsWith("NEXT_")
+  ) {
+    throw error;
+  }
+
+  return failSave(path, error);
 }
 
 async function recordActivity(input: {
@@ -140,36 +155,40 @@ async function recordActivity(input: {
 }
 
 export async function createTask(formData: FormData) {
-  const parsed = taskSchema.parse({
-    careRecipientId: formData.get("careRecipientId"),
-    title: formData.get("title"),
-    ownerName: formData.get("ownerName"),
-    priority: formData.get("priority"),
-    dueAt: formData.get("dueAt") || undefined
-  });
+  try {
+    const parsed = taskSchema.parse({
+      careRecipientId: formData.get("careRecipientId"),
+      title: formData.get("title"),
+      ownerName: formData.get("ownerName"),
+      priority: formData.get("priority"),
+      dueAt: formData.get("dueAt") || undefined
+    });
 
-  const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/tasks");
-  const { data, error } = await supabase.from("tasks").insert({
-    care_recipient_id: parsed.careRecipientId,
-    title: parsed.title,
-    owner_name: parsed.ownerName,
-    priority: parsed.priority,
-    due_at: parsed.dueAt || null,
-    created_by: user.id
-  }).select("id").single();
+    const { supabase, user, actorName } = await currentUser("/dashboard/tasks");
+    await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/tasks");
+    const { data, error } = await supabase.from("tasks").insert({
+      care_recipient_id: parsed.careRecipientId,
+      title: parsed.title,
+      owner_name: parsed.ownerName,
+      priority: parsed.priority,
+      due_at: parsed.dueAt || null,
+      created_by: user.id
+    }).select("id").single();
 
-  if (error) failSave("/dashboard/tasks", error);
-  await recordActivity({
-    careRecipientId: parsed.careRecipientId,
-    actorId: user.id,
-    actorName,
-    action: "created",
-    entity: "task",
-    entityId: data?.id,
-    summary: `Created task: ${parsed.title}.`
-  });
-  revalidatePath("/dashboard");
+    if (error) failSave("/dashboard/tasks", error);
+    await recordActivity({
+      careRecipientId: parsed.careRecipientId,
+      actorId: user.id,
+      actorName,
+      action: "created",
+      entity: "task",
+      entityId: data?.id,
+      summary: `Created task: ${parsed.title}.`
+    });
+    revalidatePath("/dashboard");
+  } catch (error) {
+    handleUnexpectedSaveFailure("/dashboard/tasks", error);
+  }
 }
 
 export async function toggleTaskCompletion(formData: FormData) {
@@ -274,29 +293,33 @@ export async function createVideo(formData: FormData) {
 }
 
 export async function createMedication(formData: FormData) {
-  const parsed = medicationSchema.parse({
-    careRecipientId: formData.get("careRecipientId"),
-    name: formData.get("name"),
-    dosage: formData.get("dosage") || undefined,
-    schedule: formData.get("schedule"),
-    instructions: formData.get("instructions") || undefined,
-    prescribedBy: formData.get("prescribedBy") || undefined,
-    refillDueAt: formData.get("refillDueAt") || undefined
-  });
-  const { supabase, user, actorName } = await currentUser("/dashboard/medications");
-  await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/medications");
-  const { data, error } = await supabase.from("medications").insert({
-    care_recipient_id: parsed.careRecipientId,
-    name: parsed.name,
-    dosage: parsed.dosage || null,
-    schedule: parsed.schedule,
-    instructions: parsed.instructions || null,
-    prescribed_by: parsed.prescribedBy || null,
-    refill_due_at: parsed.refillDueAt || null
-  }).select("id").single();
-  if (error) failSave("/dashboard/medications", error);
-  await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "medication", entityId: data?.id, summary: `Added medication: ${parsed.name}.` });
-  revalidatePath("/dashboard");
+  try {
+    const parsed = medicationSchema.parse({
+      careRecipientId: formData.get("careRecipientId"),
+      name: formData.get("name"),
+      dosage: formData.get("dosage") || undefined,
+      schedule: formData.get("schedule"),
+      instructions: formData.get("instructions") || undefined,
+      prescribedBy: formData.get("prescribedBy") || undefined,
+      refillDueAt: formData.get("refillDueAt") || undefined
+    });
+    const { supabase, user, actorName } = await currentUser("/dashboard/medications");
+    await assertCircleAccess(parsed.careRecipientId, user.id, user.email, "/dashboard/medications");
+    const { data, error } = await supabase.from("medications").insert({
+      care_recipient_id: parsed.careRecipientId,
+      name: parsed.name,
+      dosage: parsed.dosage || null,
+      schedule: parsed.schedule,
+      instructions: parsed.instructions || null,
+      prescribed_by: parsed.prescribedBy || null,
+      refill_due_at: parsed.refillDueAt || null
+    }).select("id").single();
+    if (error) failSave("/dashboard/medications", error);
+    await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "medication", entityId: data?.id, summary: `Added medication: ${parsed.name}.` });
+    revalidatePath("/dashboard");
+  } catch (error) {
+    handleUnexpectedSaveFailure("/dashboard/medications", error);
+  }
 }
 
 export async function createVisit(formData: FormData) {

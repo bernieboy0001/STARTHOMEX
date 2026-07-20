@@ -59,6 +59,45 @@ button { cursor: pointer; }
   grid-template-columns: 260px minmax(0, 1fr);
 }
 
+.page-loader {
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  color: var(--muted);
+  background: var(--main-bg);
+  font-weight: 700;
+}
+
+.page-loader-mark {
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-solid);
+  box-shadow: var(--shadow);
+  animation: loaderSpin 1.25s linear infinite;
+}
+
+.page-loader-mark img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader-mark { animation: none; }
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
