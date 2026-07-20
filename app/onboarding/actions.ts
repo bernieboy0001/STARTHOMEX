@@ -71,6 +71,7 @@ export async function createCareCircle(formData: FormData) {
       created_by: null
     });
     if (dischargeError) throw new Error(dischargeError.message);
+    await setSelectedCircle(recipient.id);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create this care circle.";
     redirect(`/onboarding?error=${encodeURIComponent(message)}`);
