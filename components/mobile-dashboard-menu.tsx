@@ -10,8 +10,7 @@ const menuLinks = [
   { href: "/dashboard/notes", label: "Notes", icon: HeartPulse },
   { href: "/dashboard/ai", label: "Extract", icon: WandSparkles },
   { href: "/dashboard/activity", label: "Activity", icon: Activity },
-  { href: "/dashboard/videos", label: "Videos", icon: Video },
-  { href: "/sign-out", label: "Sign out", icon: LogOut }
+  { href: "/dashboard/videos", label: "Videos", icon: Video }
 ];
 
 export function MobileDashboardMenu() {
@@ -33,6 +32,10 @@ export function MobileDashboardMenu() {
               </Link>
             );
           })}
+          <a href="/sign-out" onClick={() => setOpen(false)}>
+            <LogOut size={18} />
+            <span>Sign out</span>
+          </a>
         </div>
       )}
     </div>

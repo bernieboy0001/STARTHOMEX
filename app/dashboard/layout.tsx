@@ -37,10 +37,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
             return <Link href={item.href} key={item.href}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
         </nav>
-        <Link href="/sign-out" className="app-sign-out">
+        <a href="/sign-out" className="app-sign-out">
           <LogOut size={18} />
           <span>Sign out</span>
-        </Link>
+        </a>
       </aside>
       <div className="app-view">
         <header className="mobile-app-bar">
