@@ -1,6 +1,6 @@
-import { createMedication } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 import { SaveStatusNotice } from "@/components/save-status-notice";
+import { MedicationCreateForm } from "@/components/medication-create-form";
 
 export default async function MedicationsPage({ searchParams }: { searchParams?: Promise<{ save?: "database-not-connected" | "error" | "saved" }> }) {
   const query = await searchParams;
@@ -17,9 +17,7 @@ export default async function MedicationsPage({ searchParams }: { searchParams?:
           {medications.length === 0 && <div className="row"><strong>No medications yet</strong><span>Add medications, schedules, refill dates, and instructions.</span></div>}
           {medications.map(med => <div className="row" key={med.id}><strong>{med.name} {med.dosage || ""}</strong><span>{med.schedule}</span><span>{med.instructions || "No instructions"} / Refill: {med.refill_due_at ? formatDate(med.refill_due_at) : "Not set"}</span></div>)}
         </div></article>
-        <article className="panel"><div className="panel-head"><h3>Add medication</h3></div><form className="form" action={createMedication}>
-          <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="name" placeholder="Medication name" required /><input name="dosage" placeholder="Dosage" /><input name="schedule" placeholder="Schedule" required /><input name="prescribedBy" placeholder="Prescribed by" /><input name="refillDueAt" type="date" /><textarea name="instructions" placeholder="Instructions" /><button className="button" type="submit">Add medication</button>
-        </form></article>
+        <article className="panel"><div className="panel-head"><h3>Add medication</h3></div><MedicationCreateForm careRecipientId={careRecipientId} /></article>
       </section>
     </main>
   );
