@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function TaskCreateForm({ careRecipientId }: { careRecipientId: string }) {
-  const router = useRouter();
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -27,9 +25,7 @@ export function TaskCreateForm({ careRecipientId }: { careRecipientId: string })
     const payload = response ? await response.json().catch(() => ({})) : {};
     setSaving(false);
     if (!response?.ok) return setMessage(payload.error || "Task could not be saved. Please try again.");
-    event.currentTarget.reset();
-    setMessage("Task saved.");
-    router.refresh();
+    window.location.assign("/dashboard/tasks?save=saved");
   }
 
   return <form className="form" onSubmit={submit}>

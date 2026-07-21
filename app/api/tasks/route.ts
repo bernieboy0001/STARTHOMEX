@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canAccessCircle } from "@/lib/circles";
 import { retrySupabase } from "@/lib/retry";
@@ -36,6 +37,8 @@ export async function POST(request: Request) {
     }));
 
     if (error) return NextResponse.json({ error: "Task could not be saved. Please try again." }, { status: 503 });
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/tasks");
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Task API save failed", error);

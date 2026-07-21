@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canAccessCircle } from "@/lib/circles";
 import { retrySupabase } from "@/lib/retry";
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
     }));
 
     if (error) return NextResponse.json({ error: "Medication could not be saved. Please try again." }, { status: 503 });
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/medications");
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Medication API save failed", error);
