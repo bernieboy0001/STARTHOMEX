@@ -186,6 +186,7 @@ export async function createTask(formData: FormData) {
       summary: `Created task: ${parsed.title}.`
     });
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/tasks");
   } catch (error) {
     handleUnexpectedSaveFailure("/dashboard/tasks", error);
   }
@@ -319,6 +320,7 @@ export async function createMedication(formData: FormData) {
     if (error) failSave("/dashboard/medications", error);
     await recordActivity({ careRecipientId: parsed.careRecipientId, actorId: user.id, actorName, action: "created", entity: "medication", entityId: data?.id, summary: `Added medication: ${parsed.name}.` });
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/medications");
   } catch (error) {
     handleUnexpectedSaveFailure("/dashboard/medications", error);
   }

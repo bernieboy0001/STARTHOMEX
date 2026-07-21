@@ -18,14 +18,47 @@ export function VideoUploadForm({ careRecipientId, disabled }: { careRecipientId
 
         startTransition(async () => {
           try {
-            const response = await fetch("/api/care-videos/upload", {
-              method: "POST",
-              body: formData
-            });
-            const payload = await response.json().catch(() => ({}));
+            const file = formData.get("file");
+            if (!(file instanceof File)) {
+              setMessage("Choose a video file first.");
+              return;
+            }
 
-            if (!response.ok) {
-              setMessage(payload.error || "Video upload could not finish. Please try again.");
+            const preparation = await fetch("/api/care-videos/upload-url", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ careRecipientId, fileName: file.name, contentType: file.type })
+            });
+            const prepared = await preparation.json().catch(() => ({}));
+            if (!preparation.ok) {
+              setMessage(prepared.error || "Video upload could not start. Please try again.");
+              return;
+            }
+
+            const upload = await fetch(prepared.signedUrl, {
+              method: "PUT",
+              headers: { "Content-Type": file.type || "video/mp4", "x-upsert": "false" },
+              body: file
+            });
+            if (!upload.ok) {
+              setMessage("Video upload could not finish. Please try again.");
+              return;
+            }
+
+            const completion = await fetch("/api/care-videos/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                careRecipientId,
+                title: formData.get("title"),
+                category: formData.get("category"),
+                description: formData.get("description") || undefined,
+                storagePath: prepared.storagePath
+              })
+            });
+            const completed = await completion.json().catch(() => ({}));
+            if (!completion.ok) {
+              setMessage(completed.error || "Video uploaded but could not be saved. Please try again.");
               return;
             }
 
