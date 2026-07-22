@@ -18,9 +18,10 @@ export default async function OnboardingPage({ searchParams }: { searchParams?: 
         </p>
         {query?.error && <p className="notice"><strong>Setup error</strong><span>{query.error}</span></p>}
         <form className="form" action={createCareCircle}>
-          <input name="organizationName" placeholder="Family or household name" required />
-          <input name="recipientName" placeholder="Person receiving care" required />
-          <select name="primaryCondition" defaultValue="">
+          <p className="form-intro">Start with the essentials. You can add or change detail later.</p>
+          <label>Household or care team name <input name="organizationName" placeholder="e.g. Carter family" required /></label>
+          <label>Person receiving care <input name="recipientName" placeholder="Full name" required /></label>
+          <label>Care focus <select name="primaryCondition" defaultValue="">
             <option value="">Choose care focus or leave general</option>
             <option value="General elder care">General elder care</option>
             <option value="Post-hospital recovery">Post-hospital recovery</option>
@@ -30,19 +31,19 @@ export default async function OnboardingPage({ searchParams }: { searchParams?: 
             <option value="Mobility and fall prevention">Mobility and fall prevention</option>
             <option value="Chronic illness support">Chronic illness support</option>
             <option value="Home aide coordination">Home aide coordination</option>
-          </select>
-          <input name="recoveryStatus" placeholder="Current situation, e.g. needs daily check-ins" required />
-          <select name="fallRisk" defaultValue="moderate">
+          </select></label>
+          <label>Current situation <input name="recoveryStatus" placeholder="e.g. needs daily check-ins" required /></label>
+          <label>Fall risk <select name="fallRisk" defaultValue="moderate">
             <option value="unknown">Fall risk unknown</option>
             <option value="low">Low fall risk</option>
             <option value="moderate">Moderate fall risk</option>
             <option value="high">High fall risk</option>
-          </select>
-          <textarea name="emergencySummary" placeholder="Important emergency info, allergies, contacts, or risks" />
-          <input name="diagnosis" placeholder="Diagnosis or care reason, if there is one" />
-          <textarea name="goals" placeholder="Care goals, one per line or comma-separated" />
-          <textarea name="redFlags" placeholder="Warning signs to watch for, one per line or comma-separated" />
-          <textarea name="restrictions" placeholder="Restrictions or special instructions, one per line or comma-separated" />
+          </select></label>
+          <label>Emergency information <textarea name="emergencySummary" placeholder="Allergies, urgent contacts, or risks" /></label>
+          <label>Diagnosis or care reason <input name="diagnosis" placeholder="Optional" /></label>
+          <label>Care goals <textarea name="goals" placeholder="One per line or comma-separated" /></label>
+          <label>Warning signs <textarea name="redFlags" placeholder="One per line or comma-separated" /></label>
+          <label>Restrictions or instructions <textarea name="restrictions" placeholder="One per line or comma-separated" /></label>
           <button className="button" type="submit">Create care circle</button>
         </form>
       </section>

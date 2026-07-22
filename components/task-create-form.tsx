@@ -29,10 +29,10 @@ export function TaskCreateForm({ careRecipientId }: { careRecipientId: string })
   }
 
   return <form className="form" onSubmit={submit}>
-    <input name="title" placeholder="Call pharmacy about refill" required disabled={saving} />
-    <input name="ownerName" placeholder="Owner name" required disabled={saving} />
-    <input name="dueAt" type="datetime-local" disabled={saving} />
-    <select name="priority" defaultValue="medium" disabled={saving}><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+    <label>Task <input name="title" placeholder="Call pharmacy about refill" required disabled={saving} /></label>
+    <label>Responsible person <input name="ownerName" placeholder="Who will do this?" required disabled={saving} /></label>
+    <label>Due date and time <input name="dueAt" type="datetime-local" disabled={saving} /></label>
+    <label>Priority <select name="priority" defaultValue="medium" disabled={saving}><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
     <button className="button" type="submit" disabled={saving}>{saving ? "Saving..." : "Create task"}</button>
     {message && <p className="muted">{message}</p>}
   </form>;

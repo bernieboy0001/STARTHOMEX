@@ -16,7 +16,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Prom
       {params?.sent === "signup" && <p className="notice"><strong>Account created</strong><span>If email confirmation is on, check your inbox before signing in.</span></p>}
       {params?.confirmed === "1" && <p className="notice"><strong>Email confirmed</strong><span>Your email is verified. Please sign in with your email and password.</span></p>}
       {params?.confirmation === "1" && <p className="notice"><strong>Confirmation link opened</strong><span>Please sign in with your email and password. If your account is not confirmed yet, open the newest confirmation email first.</span></p>}
-      <AuthForms disabled={demo} />
+      <AuthForms disabled={demo} accountCreated={params?.sent === "signup" || params?.confirmed === "1" || params?.confirmation === "1"} />
     </main>
   );
 }

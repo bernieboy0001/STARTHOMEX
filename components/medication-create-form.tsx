@@ -28,12 +28,12 @@ export function MedicationCreateForm({ careRecipientId }: { careRecipientId: str
   }
 
   return <form className="form" onSubmit={submit}>
-    <input name="name" placeholder="Medication name" required disabled={saving} />
-    <input name="dosage" placeholder="Dosage" disabled={saving} />
-    <input name="schedule" placeholder="Schedule" required disabled={saving} />
-    <input name="prescribedBy" placeholder="Prescribed by" disabled={saving} />
-    <input name="refillDueAt" type="date" disabled={saving} />
-    <textarea name="instructions" placeholder="Instructions" disabled={saving} />
+    <label>Medication name <input name="name" placeholder="e.g. Lisinopril" required disabled={saving} /></label>
+    <label>Dosage <input name="dosage" placeholder="e.g. 10 mg" disabled={saving} /></label>
+    <label>Schedule <input name="schedule" placeholder="e.g. Once every morning" required disabled={saving} /></label>
+    <label>Prescribed by <input name="prescribedBy" placeholder="Clinician or practice" disabled={saving} /></label>
+    <label>Refill due <input name="refillDueAt" type="date" disabled={saving} /></label>
+    <label>Instructions <textarea name="instructions" placeholder="Food, timing, or safety notes" disabled={saving} /></label>
     <button className="button" type="submit" disabled={saving}>{saving ? "Saving..." : "Add medication"}</button>
     {message && <p className="muted">{message}</p>}
   </form>;

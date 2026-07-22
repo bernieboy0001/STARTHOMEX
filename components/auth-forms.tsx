@@ -2,10 +2,20 @@
 
 import Link from "next/link";
 import { ArrowRight, KeyRound, ShieldCheck, UserRoundPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export function AuthForms({ disabled }: { disabled: boolean }) {
+export function AuthForms({ disabled, accountCreated = false }: { disabled: boolean; accountCreated?: boolean }) {
   const [mode, setMode] = useState<"sign-up" | "sign-in">("sign-up");
+  const [isHandoff, setIsHandoff] = useState(accountCreated);
+
+  useEffect(() => {
+    if (!accountCreated) return;
+    const timer = window.setTimeout(() => {
+      setMode("sign-in");
+      setIsHandoff(false);
+    }, 420);
+    return () => window.clearTimeout(timer);
+  }, [accountCreated]);
 
   return (
     <section className="auth-workspace">
@@ -18,11 +28,11 @@ export function AuthForms({ disabled }: { disabled: boolean }) {
         </div>
         <div className="auth-reassurance"><ShieldCheck size={18} /><span>Private care-circle access</span></div>
       </aside>
-      <article className="auth-card">
+      <article className={`auth-card ${isHandoff ? "auth-card-handoff" : ""}`} aria-live="polite">
         <div className="auth-card-head">
           <p className="eyebrow">Welcome to HOMEX</p>
-          <h2>{mode === "sign-up" ? "Start a care circle" : "Welcome back"}</h2>
-          <p className="muted">{mode === "sign-up" ? "Create the first account, then invite the people you trust." : "Sign in to continue caring together."}</p>
+          <h2>{isHandoff ? "Your account is ready" : mode === "sign-up" ? "Start a care circle" : "Welcome back"}</h2>
+          <p className="muted">{isHandoff ? "Taking you to sign in so you can continue securely." : mode === "sign-up" ? "Create the first account, then invite the people you trust." : "Sign in to continue caring together."}</p>
         </div>
         <div className="auth-switch" role="tablist" aria-label="Account access">
           <button type="button" className={mode === "sign-up" ? "is-active" : ""} onClick={() => setMode("sign-up")}><UserRoundPlus size={16} />Create account</button>

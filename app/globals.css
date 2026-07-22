@@ -96,7 +96,7 @@ button { cursor: pointer; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-loader-mark { animation: none; }
+  .page-loader-mark, .auth-card-handoff { animation: none; }
 }
 
 .app-shell {
@@ -300,6 +300,40 @@ button { cursor: pointer; }
   padding: 34px;
   background: var(--main-bg);
 }
+
+/* Shared care-workspace hierarchy: every tool uses the same calm scan pattern. */
+.app-main > .page-head {
+  position: relative;
+  padding: 4px 0 22px;
+  border-bottom: 1px solid var(--line);
+}
+.app-main > .page-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 64px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--green);
+}
+.app-main .page-head .muted { max-width: 650px; margin: 8px 0 0; }
+.app-main .grid-2 { align-items: start; }
+.app-main .grid-2 > .panel:nth-child(even) { position: sticky; top: 24px; }
+.panel-head h3 { margin: 0; font-size: 1rem; letter-spacing: 0; }
+.panel-head { align-items: center; padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+.panel .rows { gap: 8px; }
+.row { transition: border-color 160ms ease, background 160ms ease, transform 160ms ease; }
+.row:hover { border-color: rgba(8, 113, 91, .35); background: color-mix(in srgb, var(--surface-solid) 92%, var(--green-soft)); }
+.metric { position: relative; overflow: hidden; min-height: 130px; transition: transform 160ms ease, border-color 160ms ease; }
+.metric::after { content: ""; position: absolute; right: -18px; bottom: -28px; width: 92px; height: 92px; border: 16px solid var(--green-soft); border-radius: 50%; opacity: .72; }
+.metric:hover, .card:hover { transform: translateY(-2px); border-color: rgba(8, 113, 91, .36); }
+.card { min-height: 142px; align-content: start; transition: transform 160ms ease, border-color 160ms ease; }
+.form { gap: 14px; }
+.form label { gap: 8px; }
+.form input::placeholder, .form textarea::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
+.form-intro { margin: -2px 0 4px; padding: 11px 12px; border-left: 3px solid var(--green); color: var(--muted); background: var(--green-soft); font-size: .88rem; }
+.app-main .panel > .muted { margin: 0; padding: 14px; border-radius: 8px; background: var(--green-soft); }
 
 .hero {
   position: relative;
@@ -701,6 +735,8 @@ textarea { min-height: 110px; resize: vertical; }
 .auth-aside p:not(.eyebrow) { max-width: 480px; margin-bottom: 0; color: rgba(239, 252, 246, 0.76); font-size: 1.1rem; }
 .auth-reassurance { display: flex; align-items: center; gap: 9px; color: #bdeed8; font-size: 0.9rem; font-weight: 700; }
 .auth-card { width: min(510px, calc(100% - 48px)); align-self: center; justify-self: center; padding: 24px 0; }
+.auth-card-handoff { animation: authCardHandoff 620ms cubic-bezier(.2,.85,.25,1) both; }
+@keyframes authCardHandoff { 0% { opacity: .55; transform: translateY(10px) scale(.985); } 58% { opacity: 1; transform: translateY(-3px) scale(1.008); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 .auth-card-head { margin-bottom: 26px; }
 .auth-card h2 { margin: 6px 0 10px; font-size: clamp(2rem, 3vw, 2.8rem); }
 .auth-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 24px; border-radius: 10px; background: #e6ece8; }
@@ -919,6 +955,7 @@ input[type="time"]::-webkit-datetime-edit-minute-field {
     min-height: calc(100svh - 62px);
     padding: 14px 12px calc(92px + env(safe-area-inset-bottom));
   }
+  .app-main .grid-2 > .panel:nth-child(even) { position: static; }
   .quick-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
