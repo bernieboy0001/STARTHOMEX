@@ -6,7 +6,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Prom
   const demo = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   return (
-    <main className="main">
+    <main className="auth-page">
       <div className="top-tools">
         <ThemeToggle />
       </div>

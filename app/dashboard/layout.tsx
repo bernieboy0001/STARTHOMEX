@@ -32,7 +32,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </Link>
         <ThemeToggle />
         <nav className="app-nav">
-          {[...primaryLinks, ...secondaryLinks].map(item => {
+          <p className="nav-section-label">Care workspace</p>
+          {primaryLinks.map(item => {
+            const Icon = item.icon;
+            return <Link href={item.href} key={item.href}><Icon size={18} /><span>{item.label}</span></Link>;
+          })}
+          <p className="nav-section-label nav-section-spaced">More tools</p>
+          {secondaryLinks.map(item => {
             const Icon = item.icon;
             return <Link href={item.href} key={item.href}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
