@@ -3,8 +3,10 @@ import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { retrySupabase } from "@/lib/retry";
+import { ensureCareFilesBucket } from "@/lib/storage";
 
 export async function POST(request: Request) {
+  try {
   const formData = await request.formData();
   const careRecipientId = String(formData.get("careRecipientId") || "");
   const file = formData.get("file");
@@ -20,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No access to this care circle" }, { status: 403 });
   }
 
-  const admin = createAdminClient();
+  const admin = await ensureCareFilesBucket();
   const storagePath = `voice-notes/${careRecipientId}/${Date.now()}-${file.name}`;
   const { error: uploadError } = await retrySupabase(() => admin.storage.from("care-files").upload(storagePath, file, {
     contentType: file.type || "audio/webm",
@@ -48,4 +50,8 @@ export async function POST(request: Request) {
 
   if (noteError) return NextResponse.json({ error: noteError.message }, { status: 500 });
   return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Voice note upload failed", error);
+    return NextResponse.json({ error: "Voice note could not be saved. Please try again." }, { status: 503 });
+  }
 }

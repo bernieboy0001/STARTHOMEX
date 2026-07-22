@@ -7,9 +7,10 @@ export function DocumentCameraUpload({ careRecipientId, disabled }: { careRecipi
 
   async function upload(formData: FormData) {
     setStatus("Uploading...");
-    const response = await fetch("/api/documents/upload", { method: "POST", body: formData });
-    setStatus(response.ok ? "Uploaded. Refreshing..." : "Upload failed. Check your Supabase storage bucket.");
-    if (response.ok) window.location.reload();
+    const response = await fetch("/api/documents/upload", { method: "POST", body: formData }).catch(() => null);
+    const payload = response ? await response.json().catch(() => ({})) : {};
+    setStatus(response?.ok ? "Uploaded. Refreshing..." : payload.error || "Upload failed. Please try again.");
+    if (response?.ok) window.location.reload();
   }
 
   return (

@@ -4,6 +4,7 @@ import { canAccessCircle } from "@/lib/circles";
 import { retrySupabase } from "@/lib/retry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { ensureCareFilesBucket } from "@/lib/storage";
 
 const schema = z.object({
   careRecipientId: z.string().uuid(),
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const storagePath = `videos/${parsed.data.careRecipientId}/${crypto.randomUUID()}.${extension(parsed.data.fileName)}`;
-    const admin = createAdminClient();
+    const admin = await ensureCareFilesBucket();
     const { data, error } = await retrySupabase(() => admin.storage
       .from("care-files")
       .createSignedUploadUrl(storagePath));

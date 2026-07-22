@@ -3,12 +3,14 @@ import { canAccessCircle } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { retrySupabase } from "@/lib/retry";
+import { ensureCareFilesBucket } from "@/lib/storage";
 
 function cleanName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/-+/g, "-");
 }
 
 export async function POST(request: Request) {
+  try {
   const formData = await request.formData();
   const careRecipientId = String(formData.get("careRecipientId") || "");
   const title = String(formData.get("title") || "");
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No access to this care circle" }, { status: 403 });
   }
 
-  const admin = createAdminClient();
+  const admin = await ensureCareFilesBucket();
   const storagePath = `documents/${careRecipientId}/${Date.now()}-${cleanName(file.name)}`;
   const { error: uploadError } = await retrySupabase(() => admin.storage.from("care-files").upload(storagePath, file, {
     contentType: file.type || "application/octet-stream",
@@ -46,4 +48,8 @@ export async function POST(request: Request) {
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
 
   return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Document upload failed", error);
+    return NextResponse.json({ error: "Document upload could not finish. Please try again." }, { status: 503 });
+  }
 }

@@ -719,12 +719,16 @@ input[type="date"],
 input[type="datetime-local"],
 input[type="time"] {
   color-scheme: light dark;
+  color: var(--ink) !important;
+  -webkit-text-fill-color: var(--ink);
+  opacity: 1;
 }
 
 input[type="date"]::-webkit-datetime-edit,
 input[type="datetime-local"]::-webkit-datetime-edit,
 input[type="time"]::-webkit-datetime-edit {
   color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
 }
 
 @media (max-width: 860px) {
