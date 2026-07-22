@@ -2,6 +2,7 @@ import { BellRing } from "lucide-react";
 import { createReminder } from "../actions";
 import { formatDate, loadDashboard } from "../data";
 import { SaveStatusNotice } from "@/components/save-status-notice";
+import { NotificationSettings } from "@/components/notification-settings";
 
 export default async function RemindersPage({ searchParams }: { searchParams?: Promise<{ save?: "database-not-connected" | "error" | "saved" }> }) {
   const query = await searchParams;
@@ -19,6 +20,7 @@ export default async function RemindersPage({ searchParams }: { searchParams?: P
         </div>
       </header>
       <SaveStatusNotice status={query?.save} />
+      <NotificationSettings />
       <section className="grid-2">
         <article className="panel">
           <div className="panel-head"><h3>Upcoming reminders</h3><BellRing size={20} /></div>

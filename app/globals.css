@@ -917,6 +917,13 @@ input[type="time"]::-webkit-datetime-edit-minute-field {
   font-weight: 800;
 }
 
+.notification-settings { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.notification-settings > div { display: flex; align-items: center; gap: 10px; }
+.notification-settings svg { color: var(--green); }
+.notification-settings strong, .notification-settings small { display: block; }
+.notification-settings small, .notification-settings p { color: var(--muted); font-size: .84rem; }
+.notification-settings p { grid-column: 1 / -1; margin: 0; }
+
 @media (max-width: 860px) {
   .app-shell {
     display: block;
@@ -1190,6 +1197,8 @@ input[type="time"]::-webkit-datetime-edit-minute-field {
   .operations-summary { grid-template-columns: 1fr; }
   .operations-summary > div { min-height: 68px; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; }
   .operations-summary span { grid-column: 2; }
+  .notification-settings { grid-template-columns: 1fr; }
+  .notification-settings .ghost { width: 100%; }
 }
 
 @media (max-width: 380px) {

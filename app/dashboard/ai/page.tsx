@@ -8,6 +8,7 @@ export default async function AiPage({ searchParams }: { searchParams?: Promise<
   const query = await searchParams;
   const data = await loadDashboard();
   const { recipient } = data;
+  const aiConfigured = Boolean(process.env.GEMINI_API_KEY);
   const careRecipientId = recipient.id;
   let extractions: { id: string; summary: string; suggested_tasks: string[] | null }[] = [];
   try {
@@ -28,13 +29,14 @@ export default async function AiPage({ searchParams }: { searchParams?: Promise<
         </div>
       </header>
       <SaveStatusNotice status={query?.save} />
+      {!aiConfigured && <p className="notice"><strong>AI is not connected yet.</strong><span>HOMEX can still organize key sentences, but add a server-side Gemini key to generate AI summaries.</span></p>}
       <section className="grid-2">
         <article className="panel">
           <div className="panel-head"><h3>Extract from text</h3><WandSparkles size={20} /></div>
           <form className="form" action={createCareExtraction}>
             <input type="hidden" name="careRecipientId" value={careRecipientId} />
-            <textarea name="sourceText" placeholder="Paste discharge note, medication instruction, or home-care update..." required rows={10} />
-            <button className="button" type="submit">Extract care summary</button>
+            <label>Care text <textarea name="sourceText" placeholder="Paste discharge note, medication instruction, or home-care update..." required rows={10} /></label>
+            <button className="button" type="submit">{aiConfigured ? "Generate care summary" : "Organize care text"}</button>
           </form>
         </article>
         <article className="panel">

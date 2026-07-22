@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { extractCareText } from "@/lib/care-extraction";
+import { extractCareTextWithAi } from "@/lib/care-extraction";
 import { canAccessCircle, requireSessionUser } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -23,7 +23,7 @@ export async function createCareExtraction(formData: FormData) {
     redirect("/dashboard/ai?save=error");
   }
 
-  const extracted = extractCareText(parsed.sourceText);
+  const extracted = await extractCareTextWithAi(parsed.sourceText);
   let admin;
   try {
     admin = createAdminClient();
