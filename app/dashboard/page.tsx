@@ -1,64 +1,57 @@
 import Link from "next/link";
-import { CalendarDays, ClipboardList, FileText, FileVideo, HeartPulse, Pill, UsersRound } from "lucide-react";
+import { ArrowUpRight, CalendarDays, CheckCircle2, ClipboardPlus, FileText, HeartPulse, NotebookPen, Pill, UsersRound } from "lucide-react";
 import { formatDate, loadDashboard } from "./data";
 
 export default async function DashboardPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const query = await searchParams;
   const data = await loadDashboard();
-  const { recipient, tasks, medications, visits, reminders, contacts, documents, notes, activity, videos, inviteError, productError, userEmail } = data;
+  const { recipient, tasks, medications, visits, contacts } = data;
   const openTasks = tasks.filter(task => !task.completed_at);
+  const priorityTask = openTasks[0];
+  const nextVisit = visits[0];
 
   return (
-    <main className="main app-main">
-      <header className="page-head">
+    <main className="main app-main dashboard-home">
+      <header className="dashboard-welcome">
         <div>
-          <p className="eyebrow">Care circle</p>
-          <h2>{recipient.full_name}</h2>
-          <p className="muted">{recipient.recovery_status}</p>
+          <p className="eyebrow">Today&apos;s care plan</p>
+          <h1>Care for {recipient.full_name}</h1>
+          <p>{recipient.recovery_status || "Keep the circle aligned on the next helpful step."}</p>
         </div>
-        <div className="actions compact-actions">
-          <Link className="button" href="/dashboard/family">Invite family</Link>
-        </div>
+        <Link className="ghost dashboard-circle-link" href="/dashboard/family"><UsersRound size={17} />Care circle</Link>
       </header>
 
-      {query?.error && <p className="notice"><strong>Dashboard error</strong><span>{query.error}</span></p>}
-      {inviteError && <p className="notice"><strong>Invite setup needed</strong><span>Run the invite SQL upgrade in Supabase.</span></p>}
-      {productError && <p className="notice"><strong>Product setup needed</strong><span>Run the product-core SQL upgrade in Supabase.</span></p>}
+      {query?.error && <p className="notice"><strong>We could not load part of the care plan.</strong><span>{query.error}</span></p>}
 
-      <section className="grid-4">
-        <Link className="metric" href="/dashboard/tasks"><ClipboardList size={20} /><span>Open tasks</span><strong>{openTasks.length}</strong></Link>
-        <Link className="metric" href="/dashboard/medications"><Pill size={20} /><span>Medications</span><strong>{medications.length}</strong></Link>
-        <Link className="metric" href="/dashboard/visits"><CalendarDays size={20} /><span>Appointments</span><strong>{visits.length}</strong></Link>
-        <Link className="metric" href="/dashboard/reminders"><FileVideo size={20} /><span>Reminders</span><strong>{reminders.length}</strong></Link>
+      <section className="dashboard-focus" aria-label="Care priorities">
+        <Link className="focus-card focus-primary" href="/dashboard/tasks">
+          <span className="focus-icon"><ClipboardPlus size={20} /></span>
+          <div><p className="eyebrow">Focus now</p><h2>{priorityTask?.title || "Nothing is waiting right now"}</h2><p>{priorityTask ? `Assigned to ${priorityTask.owner_name || "the care circle"}` : "Review the care plan or record an update when something changes."}</p></div>
+          <ArrowUpRight className="focus-arrow" size={21} />
+        </Link>
+        <Link className="focus-card" href="/dashboard/visits">
+          <span className="focus-icon"><CalendarDays size={20} /></span>
+          <div><p className="eyebrow">Next appointment</p><h2>{nextVisit?.title || "Nothing scheduled"}</h2><p>{nextVisit ? formatDate(nextVisit.starts_at) : "Add the next visit when you know it."}</p></div>
+          <ArrowUpRight className="focus-arrow" size={21} />
+        </Link>
       </section>
 
-      <section className="grid-2 app-section">
-        <article className="panel">
-          <div className="panel-head"><div><p className="eyebrow">Daily brief</p><h3>What matters right now</h3></div></div>
-          <div className="rows">
-            <div className="row"><strong>{openTasks[0]?.title || "No urgent open task"}</strong><span>{openTasks[0] ? `Owner: ${openTasks[0].owner_name || "Unassigned"}` : "Keep monitoring notes, medications, visits, and red flags."}</span></div>
-            <div className="row"><strong>Next visit</strong><span>{visits[0] ? `${visits[0].title} / ${formatDate(visits[0].starts_at)}` : "No appointment scheduled."}</span></div>
-            {userEmail && <div className="row"><strong>Signed in</strong><span>{userEmail}</span></div>}
-          </div>
-        </article>
-
-        <article className="panel">
-          <div className="panel-head"><HeartPulse size={22} /><h3>Emergency card</h3></div>
-          <div className="rows">
-            <div className="row"><strong>Care focus</strong><span>{recipient.primary_condition || "General home care"}</span></div>
-            <div className="row"><strong>Fall risk</strong><span>{recipient.fall_risk || "Unknown"}</span></div>
-            <div className="row"><strong>Summary</strong><span>{recipient.emergency_summary || "No emergency summary yet."}</span></div>
-            <div className="row"><strong>Important contacts</strong><span>{contacts.slice(0, 2).map(contact => `${contact.name} (${contact.role})`).join(" / ") || "Add contacts in Family."}</span></div>
-          </div>
-        </article>
+      <section className="dashboard-actions" aria-labelledby="quick-actions-heading">
+        <div className="section-heading"><div><p className="eyebrow">Do one thing</p><h2 id="quick-actions-heading">Quick actions</h2></div><span>Keep the plan moving</span></div>
+        <div className="action-list">
+          <Link href="/dashboard/tasks"><ClipboardPlus size={19} /><span>Add a task</span><ArrowUpRight size={17} /></Link>
+          <Link href="/dashboard/notes"><NotebookPen size={19} /><span>Share an update</span><ArrowUpRight size={17} /></Link>
+          <Link href="/dashboard/medications"><Pill size={19} /><span>Review medication</span><ArrowUpRight size={17} /></Link>
+        </div>
       </section>
 
-      <section className="quick-grid">
-        <Link className="card" href="/dashboard/family"><UsersRound size={20} /><strong>Family & team</strong><span>Invite trusted people and manage access.</span></Link>
-        <Link className="card" href="/dashboard/documents"><FileText size={20} /><strong>Documents</strong><span>Store important care links and notes.</span></Link>
-        <Link className="card" href="/dashboard/notes"><HeartPulse size={20} /><strong>Care notes</strong><span>Log what changed today.</span></Link>
-        <Link className="card" href="/dashboard/reminders"><CalendarDays size={20} /><strong>Reminders</strong><span>Set follow-ups and device alerts.</span></Link>
-        <Link className="card" href="/dashboard/videos"><FileVideo size={20} /><strong>Care videos</strong><span>Keep walkthroughs and training clips in one place.</span></Link>
+      <section className="care-pulse" aria-labelledby="care-pulse-heading">
+        <div className="section-heading"><div><p className="eyebrow">At a glance</p><h2 id="care-pulse-heading">Care pulse</h2></div><Link href="/dashboard/activity">View activity <ArrowUpRight size={15} /></Link></div>
+        <div className="pulse-items">
+          <div><CheckCircle2 size={18} /><span><strong>{openTasks.length} open task{openTasks.length === 1 ? "" : "s"}</strong><small>Ready for the circle</small></span></div>
+          <div><HeartPulse size={18} /><span><strong>{recipient.primary_condition || "General home care"}</strong><small>Current care focus</small></span></div>
+          <div><FileText size={18} /><span><strong>{contacts.length ? `${contacts.length} care contact${contacts.length === 1 ? "" : "s"}` : "No contacts saved"}</strong><small>Emergency support</small></span></div>
+        </div>
       </section>
     </main>
   );
