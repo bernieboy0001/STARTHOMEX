@@ -36,13 +36,13 @@ export default async function RemindersPage({ searchParams }: { searchParams?: P
           <div className="panel-head"><h3>Add reminder</h3></div>
           <form className="form" action={createReminder}>
             <input type="hidden" name="careRecipientId" value={careRecipientId} />
-            <input name="title" placeholder="Reminder title" required />
-            <input name="remindAt" type="datetime-local" required />
-            <select name="channel" defaultValue="app">
+            <label>Reminder <input name="title" placeholder="e.g. Check medication refill" required /></label>
+            <label>When <input name="remindAt" type="datetime-local" required /></label>
+            <label>Send through <select name="channel" defaultValue="app">
               <option value="app">App push</option>
               <option value="email">Email follow-up</option>
               <option value="sms">SMS later</option>
-            </select>
+            </select></label>
             <button className="button" type="submit">Add reminder</button>
           </form>
         </article>

@@ -29,7 +29,7 @@ export default async function AgencyPage() {
   });
 
   return (
-    <main className="main">
+    <main className="main operations-page">
       <header className="page-head">
         <div>
           <p className="eyebrow">Agency dashboard</p>
@@ -37,6 +37,10 @@ export default async function AgencyPage() {
           <p className="muted">For care homes, coordinators, and superadmin operators managing many circles.</p>
         </div>
       </header>
+      <section className="operations-summary" aria-label="Agency summary">
+        <div><strong>{recipients?.length || 0}</strong><span>care circles</span></div>
+        <div><strong>{memberships?.length || 0}</strong><span>active memberships</span></div>
+      </section>
       <section className="panel">
         <div className="panel-head"><h3>Circles</h3><Building2 size={20} /></div>
         <div className="rows">

@@ -45,6 +45,8 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
   const query = await searchParams;
   const user = await requireSuperAdmin();
   const { users, memberships, invites, recipients, error } = await loadAdminData();
+  const activeUsers = users.filter(account => !account.deleted_at).length;
+  const activeInvites = invites.filter(invite => !invite.accepted_at && !invite.revoked_at).length;
 
   return (
     <div className="shell">
@@ -71,6 +73,12 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
           <Link className="button" href="/dashboard">Care dashboard</Link>
         </header>
 
+        <section className="operations-summary" aria-label="Platform summary">
+          <div><strong>{activeUsers}</strong><span>active users</span></div>
+          <div><strong>{recipients.length}</strong><span>care circles</span></div>
+          <div><strong>{activeInvites}</strong><span>open invites</span></div>
+        </section>
+
         {(query?.error || error) && <p className="notice"><strong>Admin error</strong><span>{query?.error || error}</span></p>}
         {query?.status && statusMessage[query.status] && <p className="notice success-notice"><strong>Updated</strong><span>{statusMessage[query.status]}</span></p>}
 
@@ -81,7 +89,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
               <div className="row split-row" key={account.id}>
                 <span>
                   <strong>{account.email}</strong>
-                  <span>{account.deleted_at ? "Deactivated" : "Active"} / {account.id} / {account.created_at}</span>
+                  <span>{account.deleted_at ? "Deactivated" : "Active"} / Joined {new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(account.created_at))}</span>
                 </span>
                 {account.deleted_at ? <form action={permanentlyDeleteDeactivatedUser}><input type="hidden" name="id" value={account.id} /><button className="ghost danger" type="submit">Delete record</button></form> : <form action={deleteAuthUser}><input type="hidden" name="id" value={account.id} /><button className="ghost danger" type="submit">Deactivate user</button></form>}
               </div>
@@ -95,8 +103,8 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
             {memberships.map(membership => (
               <div className="row split-row" key={membership.id}>
                 <span>
-                  <strong>{membership.role.replace("_", " ")} / Circle {membership.care_recipient_id}</strong>
-                  <span>Organization {membership.organization_id} / User {membership.user_id}</span>
+                  <strong>{membership.role.replace("_", " ")} access</strong>
+                  <span>Care-circle membership</span>
                 </span>
                 <form action={revokeMembership}>
                   <input type="hidden" name="id" value={membership.id} />
@@ -114,7 +122,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
               <div className="row split-row" key={invite.id}>
                 <span>
                   <strong>{invite.invited_email || "Open invite"} / {invite.role}</strong>
-                  <span>Circle {invite.care_recipient_id} / {invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : "Active"}</span>
+                  <span>{invite.accepted_at ? "Accepted" : invite.revoked_at ? "Revoked" : "Active"}</span>
                 </span>
                 <form action={revokeInvite}>
                   <input type="hidden" name="id" value={invite.id} />
@@ -132,7 +140,7 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
               <div className="row split-row" key={recipient.id}>
                 <span>
                   <strong>{recipient.full_name}</strong>
-                  <span>Organization {recipient.organization_id} / {recipient.recovery_status || "No status"}</span>
+                  <span>{recipient.recovery_status || "No status"}</span>
                 </span>
                 <Link className="ghost" href={`/dashboard/select-circle/${recipient.id}`}>Open circle</Link>
               </div>

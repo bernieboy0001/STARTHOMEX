@@ -20,7 +20,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
           {documents.map(doc => <div className="row" key={doc.id}><strong>{doc.title}</strong><span>{doc.category} / {doc.notes || "No notes"}</span>{(doc.external_url || doc.download_url) && <a className="document-open" href={doc.external_url || doc.download_url || undefined} target="_blank" rel="noreferrer"><ExternalLink size={16} />Open document</a>}</div>)}
         </div></article>
         <article className="panel"><div className="panel-head"><h3>Add document link</h3></div><form className="form" action={createDocument}>
-          <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="title" placeholder="Document title" required /><input name="category" placeholder="Category" required /><input name="externalUrl" type="url" placeholder="Optional secure link" /><textarea name="notes" placeholder="Notes" /><button className="button" type="submit">Add document</button>
+          <input type="hidden" name="careRecipientId" value={careRecipientId} /><label>Document name <input name="title" placeholder="e.g. Discharge summary" required /></label><label>Category <input name="category" placeholder="e.g. Medical record" required /></label><label>Secure link <input name="externalUrl" type="url" placeholder="Optional" /></label><label>Notes <textarea name="notes" placeholder="What should the circle know?" /></label><button className="button" type="submit">Add document</button>
         </form></article>
         <article className="panel"><div className="panel-head"><h3>Camera scan</h3></div><DocumentCameraUpload careRecipientId={careRecipientId} /></article>
       </section>
