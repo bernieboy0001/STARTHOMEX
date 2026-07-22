@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/auth";
-import { deleteAuthUser, revokeInvite, revokeMembership } from "./actions";
+import { deleteAuthUser, permanentlyDeleteDeactivatedUser, revokeInvite, revokeMembership } from "./actions";
 
 async function loadAdminData() {
   const admin = createAdminClient();
@@ -37,7 +37,8 @@ async function loadAdminData() {
 const statusMessage = {
   "access-revoked": "Care-circle access revoked.",
   "invite-revoked": "Invite link revoked.",
-  "user-deleted": "User deactivated and their care-circle access removed."
+  "user-deleted": "User deactivated and their care-circle access removed.",
+  "user-removed": "Deactivated user permanently removed."
 } as const;
 
 export default async function SuperAdminPage({ searchParams }: { searchParams?: Promise<{ error?: string; status?: keyof typeof statusMessage }> }) {
@@ -80,12 +81,9 @@ export default async function SuperAdminPage({ searchParams }: { searchParams?: 
               <div className="row split-row" key={account.id}>
                 <span>
                   <strong>{account.email}</strong>
-                  <span>{account.id} / {account.created_at}</span>
+                  <span>{account.deleted_at ? "Deactivated" : "Active"} / {account.id} / {account.created_at}</span>
                 </span>
-                <form action={deleteAuthUser}>
-                  <input type="hidden" name="id" value={account.id} />
-                  <button className="ghost danger" type="submit">Deactivate user</button>
-                </form>
+                {account.deleted_at ? <form action={permanentlyDeleteDeactivatedUser}><input type="hidden" name="id" value={account.id} /><button className="ghost danger" type="submit">Delete record</button></form> : <form action={deleteAuthUser}><input type="hidden" name="id" value={account.id} /><button className="ghost danger" type="submit">Deactivate user</button></form>}
               </div>
             ))}
           </div>
