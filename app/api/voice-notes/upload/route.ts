@@ -41,9 +41,9 @@ export async function POST(request: Request) {
   const { error: noteError } = await retrySupabase(() => admin.from("care_notes").insert({
     care_recipient_id: careRecipientId,
     author_id: user.id,
-    author_name: user.email || "HOMEX dashboard user",
+    author_name: (typeof user.user_metadata.full_name === "string" && user.user_metadata.full_name) || user.email || "Care circle member",
     note_type: "voice",
-    body: "Voice note uploaded."
+    body: "Voice note attached below."
   }));
 
   if (noteError) return NextResponse.json({ error: noteError.message }, { status: 500 });

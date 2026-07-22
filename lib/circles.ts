@@ -34,6 +34,19 @@ export async function canAccessCircle(careRecipientId: string, userId: string, e
   return !!data;
 }
 
+export async function hasCircleRole(careRecipientId: string, userId: string, roles: string[], email?: string | null) {
+  if (isSuperAdminEmail(email)) return true;
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("care_memberships")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("care_recipient_id", careRecipientId)
+    .in("role", roles)
+    .maybeSingle();
+  return !!data;
+}
+
 export async function setSelectedCircle(careRecipientId: string) {
   const user = await requireSessionUser();
 

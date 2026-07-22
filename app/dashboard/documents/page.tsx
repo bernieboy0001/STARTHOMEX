@@ -16,7 +16,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Saved documents</h3></div><div className="rows">
           {documents.length === 0 && <div className="row"><strong>No documents yet</strong><span>Add discharge papers, medication lists, insurance notes, or shared links.</span></div>}
-          {documents.map(doc => <div className="row" key={doc.id}><strong>{doc.external_url ? <a href={doc.external_url} target="_blank" rel="noreferrer">{doc.title}</a> : doc.title}</strong><span>{doc.category} / {doc.notes || "No notes"}</span></div>)}
+          {documents.map(doc => <div className="row" key={doc.id}><strong>{doc.external_url || doc.download_url ? <a href={doc.external_url || doc.download_url || undefined} target="_blank" rel="noreferrer">{doc.title}</a> : doc.title}</strong><span>{doc.category} / {doc.notes || "No notes"}</span></div>)}
         </div></article>
         <article className="panel"><div className="panel-head"><h3>Add document link</h3></div><form className="form" action={createDocument}>
           <input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="title" placeholder="Document title" required /><input name="category" placeholder="Category" required /><input name="externalUrl" type="url" placeholder="Optional secure link" /><textarea name="notes" placeholder="Notes" /><button className="button" type="submit">Add document</button>

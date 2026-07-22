@@ -73,6 +73,8 @@ export type CareDocument = {
   category: string;
   external_url: string | null;
   notes: string | null;
+  storage_path?: string | null;
+  download_url?: string | null;
   created_at: string;
 };
 

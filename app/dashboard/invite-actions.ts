@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { canAccessCircle, requireSessionUser } from "@/lib/circles";
+import { canAccessCircle, hasCircleRole, requireSessionUser } from "@/lib/circles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const inviteSchema = z.object({
@@ -50,7 +50,7 @@ export async function createInviteLink(formData: FormData) {
     role: formData.get("role") || "family_member"
   });
   const user = await requireSessionUser();
-  if (!(await canAccessCircle(parsed.careRecipientId, user.id, user.email))) {
+  if (!(await hasCircleRole(parsed.careRecipientId, user.id, ["family_lead"], user.email))) {
     redirect("/dashboard/family?save=error");
   }
   const circle = await getCircle(parsed.careRecipientId);

@@ -8,7 +8,7 @@ import { InviteLinkCopy } from "@/components/invite-link-copy";
 export default async function FamilyPage({ searchParams }: { searchParams?: Promise<{ invite?: string; save?: "database-not-connected" | "error" | "saved" }> }) {
   const query = await searchParams;
   const data = await loadDashboard();
-  const { recipient, contacts, memberships, invites } = data;
+  const { recipient, contacts, memberships, invites, canInvite } = data;
   const careRecipientId = recipient.id;
   const latestInviteUrl = query?.invite ? inviteUrl(query.invite) : null;
 
@@ -18,7 +18,7 @@ export default async function FamilyPage({ searchParams }: { searchParams?: Prom
       <SaveStatusNotice status={query?.save} />
       <section className="grid-2">
         <article className="panel"><div className="panel-head"><h3>Create invite link</h3></div>
-          <form className="form" action={createInviteLink}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="invitedEmail" type="email" placeholder="Optional: family@example.com" /><select name="role" defaultValue="family_member"><option value="family_member">Family member</option><option value="home_aide">Home aide</option><option value="agency_coordinator">Agency coordinator</option><option value="clinician">Clinician</option></select><button className="button" type="submit">Generate invite link</button></form>
+          {canInvite ? <form className="form" action={createInviteLink}><input type="hidden" name="careRecipientId" value={careRecipientId} /><input name="invitedEmail" type="email" placeholder="Optional: family@example.com" /><select name="role" defaultValue="family_member"><option value="family_member">Family member</option><option value="home_aide">Home aide</option><option value="agency_coordinator">Agency coordinator</option><option value="clinician">Clinician</option></select><button className="button" type="submit">Generate invite link</button></form> : <p className="muted">Only the family lead can invite people into this care circle.</p>}
           {latestInviteUrl && <div className="row copy-row"><strong>Share this link</strong><InviteLinkCopy url={latestInviteUrl} /></div>}
         </article>
         <article className="panel"><div className="panel-head"><h3>Members and invites</h3></div><div className="rows">

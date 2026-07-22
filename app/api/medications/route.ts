@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canAccessCircle } from "@/lib/circles";
+import { hasCircleRole } from "@/lib/circles";
 import { retrySupabase } from "@/lib/retry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     const { data: authData } = await retrySupabase(() => auth.auth.getUser());
     const user = authData.user;
     if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
-    if (!(await canAccessCircle(parsed.data.careRecipientId, user.id, user.email))) {
-      return NextResponse.json({ error: "No access to this care circle." }, { status: 403 });
+    if (!(await hasCircleRole(parsed.data.careRecipientId, user.id, ["family_lead", "clinician"], user.email))) {
+      return NextResponse.json({ error: "Only the family lead or an invited clinician can add medications." }, { status: 403 });
     }
 
     const { error } = await retrySupabase(() => createAdminClient().from("medications").insert({

@@ -25,11 +25,14 @@ export type DashboardData = {
   reminders: Reminder[];
   contacts: Contact[];
   documents: CareDocument[];
+  voiceNotes: CareDocument[];
   memberships: CareMembership[];
   activity: AuditEvent[];
   inviteError: string | null;
   productError: string | null;
   userEmail: string | null;
+  canInvite: boolean;
+  canManageMedications: boolean;
 };
 
 export function formatDate(value: string | null) {
@@ -82,7 +85,7 @@ export async function loadDashboard(): Promise<DashboardData> {
     supabase.from("visits").select("*").eq("care_recipient_id", recipient.id).order("starts_at", { ascending: true }).limit(8),
     supabase.from("reminders").select("*").eq("care_recipient_id", recipient.id).is("completed_at", null).order("remind_at", { ascending: true }).limit(12),
     supabase.from("contacts").select("*").eq("care_recipient_id", recipient.id).order("role"),
-    supabase.from("documents").select("id, title, category, external_url, notes, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(8)
+    supabase.from("documents").select("id, title, category, external_url, notes, storage_path, created_at").eq("care_recipient_id", recipient.id).order("created_at", { ascending: false }).limit(16)
   ]);
 
   const admin = supabase;
@@ -113,6 +116,18 @@ export async function loadDashboard(): Promise<DashboardData> {
     })
   );
 
+  const documentsWithLinks = await Promise.all(
+    ((documentsResult.data || []) as CareDocument[]).map(async document => {
+      if (!document.storage_path) return document;
+      const { data } = await supabase.storage.from("care-files").createSignedUrl(document.storage_path, 60 * 20);
+      return { ...document, download_url: data?.signedUrl || null };
+    })
+  );
+
+  const currentRole = isSuperAdmin
+    ? "family_lead"
+    : (memberships || []).find(member => member.user_id === user.id)?.role || null;
+
   const productError = [medicationsResult, visitsResult, remindersResult, contactsResult, documentsResult]
     .map(result => result.error?.message)
     .find(Boolean) || null;
@@ -128,11 +143,14 @@ export async function loadDashboard(): Promise<DashboardData> {
     visits: (visitsResult.error ? [] : visitsResult.data || []) as Visit[],
     reminders: (remindersResult.error ? [] : remindersResult.data || []) as Reminder[],
     contacts: (contactsResult.error ? [] : contactsResult.data || []) as Contact[],
-    documents: (documentsResult.error ? [] : documentsResult.data || []) as CareDocument[],
+    documents: documentsResult.error ? [] : documentsWithLinks,
+    voiceNotes: documentsWithLinks.filter(document => document.category === "Voice note" && document.download_url),
     memberships: membershipsWithUsers as CareMembership[],
     activity: (activity || []) as AuditEvent[],
     inviteError: invitesResult.error?.message || null,
     productError,
-    userEmail: user.email || null
+    userEmail: user.email || null,
+    canInvite: currentRole === "family_lead",
+    canManageMedications: currentRole === "family_lead" || currentRole === "clinician"
   };
 }

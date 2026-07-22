@@ -715,6 +715,18 @@ textarea { min-height: 110px; resize: vertical; }
   h1 { font-size: 3.4rem; }
 }
 
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  color-scheme: light dark;
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit {
+  color: var(--ink);
+}
+
 @media (max-width: 860px) {
   .app-shell {
     display: block;
